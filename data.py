@@ -60,7 +60,7 @@ class ImageDataset(FileDataset):
             transform = (lambda x: x)
 
         transforms = Compose([
-            loader
+            loader,
             transform
         ])
 
