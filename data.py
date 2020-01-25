@@ -53,7 +53,7 @@ class ImageDataset(FileDataset):
         from PIL.Image import open
         return open(path)
 
-    def __init__(self, pathname, transform=None, *, loader=ImageDataset.default_image_loader, recursive=False, key=None, reverse=False):
+    def __init__(self, pathname, transform=None, *, loader=default_image_loader, recursive=False, key=None, reverse=False):
         from torchvision.transforms import Compose
 
         if transform is None:
