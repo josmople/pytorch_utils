@@ -40,7 +40,28 @@ class ZipDataset(data.Dataset):
 
 class FileDataset(ValueDataset):
 
-    def __init__(pathname, transform, *, recursive=False, key=None, reverse=False):
+    def __init__(pathname, transform=None, *, recursive=False, key=None, reverse=False):
         from .io import glob
         values = glob(pathname, recursive=recursive, key=key, reverse=reverse)
         super().__init__(values=values, transform=transform)
+
+
+class ImageDataset(FileDataset):
+
+    @staticmethod
+    def default_image_loader(cls, path):
+        from PIL.Image import open
+        return open(path)
+
+    def __init__(pathname, transform=None, *, loader=ImageDataset.default_image_loader, recursive=False, key=None, reverse=False):
+        from torchvision.transforms import Compose
+
+        if transform is None:
+            transform = (lambda x: x)
+
+        transforms = Compose([
+            loader
+            transform
+        ])
+
+        super().__init__(pathname=pathname, transform=transforms, recursive=recursive, key=key, reverse=reverse)
