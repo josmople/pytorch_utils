@@ -1,5 +1,6 @@
-import torch
 import torch.utils.data as data
+
+from .defaults import image_loader
 
 
 class ValueDataset(data.Dataset):
@@ -48,12 +49,7 @@ class FileDataset(ValueDataset):
 
 class ImageDataset(FileDataset):
 
-    @staticmethod
-    def default_image_loader(cls, path):
-        from PIL.Image import open
-        return open(path)
-
-    def __init__(self, pathname, transform=None, *, loader=default_image_loader, recursive=False, key=None, reverse=False):
+    def __init__(self, pathname, transform=None, *, loader=image_loader, recursive=False, key=None, reverse=False):
         from torchvision.transforms import Compose
 
         if transform is None:
