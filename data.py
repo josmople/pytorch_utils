@@ -36,3 +36,11 @@ class ZipDataset(data.Dataset):
         if self.zip_transform is None:
             return tuple(array)
         return self.zip_transform(*array)
+
+
+class FileDataset(ValueDataset):
+
+    def __init__(pathname, transform, *, recursive=False, key=None, reverse=False):
+        from .io import glob
+        values = glob(pathname, recursive=recursive, key=key, reverse=reverse)
+        super().__init__(values=values, transform=transform)
