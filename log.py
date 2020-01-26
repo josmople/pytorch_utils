@@ -47,8 +47,12 @@ class LogDir(PathResolution):
         return normpath(path)
 
 
-def timestamp(template="%Y-%m-%d %H-%M-%S"):
+def timestamp(template="%Y-%m-%d %H-%M-%S.%f"):
     from datetime import datetime
     now = datetime.now()
     path = now.strftime(template)
     return path
+
+
+def log_metric(tag, value, step):
+    pass
