@@ -25,7 +25,7 @@ class LogDir(PathResolution):
         self.default_meta = default_meta
 
     def __call__(self, *paths, prepare=None, meta=None):
-        from os.path import join, dirname, exists, isfile
+        from os.path import join, dirname, exists, isfile, normpath
         from os import makedirs
 
         path = join(self.dirpath, *paths)
@@ -44,7 +44,7 @@ class LogDir(PathResolution):
             if not exists(dirpath) or isfile(dirpath):
                 makedirs(dirpath)
 
-        return path
+        return normpath(path)
 
 
 def timestamp(template="%Y-%m-%d %H-%M-%S"):
