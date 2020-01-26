@@ -20,7 +20,7 @@ def vgg_denormalize():
     )
 
 
-def logdir(**configs):
+def logdir(dirpath="logs/{ts}", **configs):
     from .log import LogDir, timestamp
 
     def default_meta():
@@ -35,7 +35,7 @@ def logdir(**configs):
         return meta
 
     return LogDir(
-        f"logs/{timestamp()}",
+        dirpath.format(**default_meta()),
         default_prepare=True,
         default_meta=default_meta
     )
