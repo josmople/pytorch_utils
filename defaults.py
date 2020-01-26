@@ -13,7 +13,7 @@ def vgg_normalize(tensor):
     )
 
 
-def vgg_denormalize():
+def vgg_denormalize(tensor):
     from torchvision.transforms.functional import normalize
     return normalize(
         tensor,
