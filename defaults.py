@@ -5,7 +5,7 @@ def image_loader(path):
 
 
 def vgg_normalize(tensor):
-    from torchvision.transforms.functional import normalize
+    from .functional import normalize
     return normalize(
         tensor,
         mean=[0.485, 0.456, 0.406],
@@ -14,11 +14,11 @@ def vgg_normalize(tensor):
 
 
 def vgg_denormalize(tensor):
-    from torchvision.transforms.functional import normalize
-    return normalize(
+    from .functional import denormalize
+    return denormalize(
         tensor,
-        mean=[-0.485/0.229, -0.456/0.224, -0.406/0.225],
-        std=[1/0.229, 1/0.224, 1/0.225]
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
     )
 
 
