@@ -31,14 +31,14 @@ class VGGExtractor(_Module):
 
         n, m = 1, 0
         for i, layer in enumerate(features):
-            if isinstance(layer, nn.Conv2d):
+            if isinstance(layer, Conv2d):
                 m += 1
                 mapping["conv{}_{}".format(n, m)] = i
-            elif isinstance(layer, nn.ReLU):
+            elif isinstance(layer, ReLU):
                 mapping["relu{}_{}".format(n, m)] = i
-            elif isinstance(layer, nn.BatchNorm2d):
+            elif isinstance(layer, BatchNorm2d):
                 mapping["batch{}_{}".format(n, m)] = i
-            elif isinstance(layer, nn.MaxPool2d):
+            elif isinstance(layer, MaxPool2d):
                 mapping["pool{}".format(n)] = i
                 n += 1
                 m = 0
