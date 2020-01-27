@@ -82,7 +82,7 @@ class PytorchLogger:
 
         if isinstance(logdir, str):
             self.logdir = create_logdir(
-                rootdir,
+                logdir,
                 tbpath=tbpath,
                 msgpath=msgpath
             )
