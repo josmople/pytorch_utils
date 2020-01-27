@@ -97,8 +97,6 @@ class PytorchLogger:
         self.tbwriter = None
         self.tbwriterpath = None
 
-        self.prepare_filepath()
-
     def log_pytorch(self, path, obj):
         from torch import save
         save(obj, self.logdir(path))

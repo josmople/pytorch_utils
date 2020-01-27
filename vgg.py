@@ -4,7 +4,7 @@ import torchvision.models.vgg as vgg
 
 
 def vgg_normalize(tensor):
-    from .functional import normalize
+    from .transform import normalize
     return normalize(
         tensor,
         mean=[0.485, 0.456, 0.406],
@@ -13,7 +13,7 @@ def vgg_normalize(tensor):
 
 
 def vgg_denormalize(tensor):
-    from .functional import denormalize
+    from .transform import denormalize
     return denormalize(
         tensor,
         mean=[0.485, 0.456, 0.406],
