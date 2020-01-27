@@ -39,6 +39,32 @@ class ZipDataset(_Dataset):
         return tuple(array)
 
 
+class AugDataset(_Dataset):
+
+    def __init__(self, root_values, aug_fn=None):
+        aug_fn = aug_fn or (lambda x: [x])
+
+        self.root_values = root_values
+        self.aug_fn = aug_fn
+        self.values = self.compute_values(self.root_values, self.aug_fn)
+
+    def compute_values(self, root_values, aug_fn):
+        values = []
+        for rv in root_values:
+            for av in aug_fn(rv):
+                values.append(av)
+        return values
+
+    def __len__(self):
+        return len(self.values)
+
+    def __getitem__(self, idx):
+        item = self.values[idx]
+        if callable(item):
+            item = item()
+        return item
+
+
 class FileDataset(ValueDataset):
 
     def __init__(self, pathname, transform=None, *, recursive=False, key=None, reverse=False):
