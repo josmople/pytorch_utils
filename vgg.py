@@ -25,6 +25,8 @@ class VGGExtractor(_Module):
 
     @staticmethod
     def layername_index_mapping(features):
+        from torch.nn import Conv2d, ReLU, BatchNorm2d, MaxPool2d
+
         mapping = {}
 
         n, m = 1, 0
