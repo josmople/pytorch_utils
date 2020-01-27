@@ -25,6 +25,7 @@ def pil_resize_scale(img, scale, resample="nearest"):
 
     resample = str(resample).upper()
     assert resample in RESAMPLE
+    resample = RESAMPLE[resample]
 
     SH, SW = is_number_or_pair(scale)
 
