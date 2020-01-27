@@ -18,7 +18,7 @@ def normalize(tensor, mean, std, inplace=False):
     return tensor
 
 
-def denormalize(tensor: torch.Tensor, mean, std, inplace=False):
+def denormalize(tensor, mean, std, inplace=False):
     from torch import as_tensor
 
     if not inplace:
