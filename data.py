@@ -14,9 +14,9 @@ class ValueDataset(data.Dataset):
 
     def __getitem__(self, idx):
         value = self.values[idx]
-        if self.transform is None:
-            return value
-        return self.transform(value)
+        if callable(self.transform):
+            return self.transform(value)
+        return value
 
 
 class ZipDataset(data.Dataset):
@@ -34,9 +34,9 @@ class ZipDataset(data.Dataset):
     def __getitem__(self, idx):
         array = [other[idx] for other in self.others]
         array.insert(0, self.dataset[idx])
-        if self.zip_transform is None:
-            return tuple(array)
-        return self.zip_transform(*array)
+        if callable(self.zip_transform):
+            return self.zip_transform(*array)
+        return tuple(array)
 
 
 class FileDataset(ValueDataset):
@@ -54,6 +54,9 @@ class ImageDataset(FileDataset):
 
         if transform is None:
             transform = (lambda x: x)
+
+        assert callable(transform)
+        assert callable(loader)
 
         transforms = Compose([
             loader,
