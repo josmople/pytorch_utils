@@ -81,8 +81,9 @@ class VGGExtractor(_Module):
         for param in self.model.parameters():
             param.requires_grad_(requires_grad)
 
+        from torch.nn import ReLU
         for layer in self.model:
-            if isinstance(layer, nn.ReLU):
+            if isinstance(layer, ReLU):
                 layer.inplace = inplace_relu
 
     def forward(self, x, fetches=None):
