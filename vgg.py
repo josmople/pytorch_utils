@@ -68,15 +68,15 @@ class VGGExtractor(_Module):
         assert isinstance(vgg_bn, bool)
         assert isinstance(requires_grad, bool)
         assert isinstance(inplace_relu, bool)
-        assert preprocess is None or callable(preprocess)
 
-        model_name = "vgg{}{}".format(vgg_nlayer, "_bn" if vgg_bn else "")
+        model_name = f"vgg{vgg_nlayer}{'_bn' if vgg_bn else ''}"
         self.model = getattr(vgg, model_name)(**kwargs).features
         self.mapping = self.__class__.layername_index_mapping(self.model)
 
+        if preprocess is None:
+            def preprocess(x): return x
+        assert callable(preprocess)
         self.preprocess = preprocess
-        if self.preprocess is None:
-            self.preprocess = lambda x: x
 
         for param in self.model.parameters():
             param.requires_grad_(requires_grad)
