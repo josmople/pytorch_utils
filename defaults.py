@@ -4,24 +4,6 @@ def image_loader(path):
     return open(path)
 
 
-def vgg_normalize(tensor):
-    from .functional import normalize
-    return normalize(
-        tensor,
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225]
-    )
-
-
-def vgg_denormalize(tensor):
-    from .functional import denormalize
-    return denormalize(
-        tensor,
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225]
-    )
-
-
 def logdir(dirpath="logs/{start_ts}", **configs):
     from .log import LogDir, timestamp
 
