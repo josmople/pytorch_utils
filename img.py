@@ -33,3 +33,18 @@ def pil_resize_scale(img, scale, resample="nearest"):
     NW, NH = int(SW * W), int(SH * H)
 
     return img.resize(size=(NW, NH), resample=resample)
+
+
+def pil_mod_crop(img, mod):
+    from PIL.Image import Image
+    from .check import is_int_or_pair
+
+    assert isinstance(img, Image)
+
+    MH, MW = is_int_or_pair(mod)
+
+    W, H = img.size
+    XW, XH = W % MW, H % MH
+    NW, NH = W - XW, H - XH
+
+    return img.crop((0, NW, 0, NH))
