@@ -47,4 +47,4 @@ def pil_mod_crop(img, mod):
     XW, XH = W % MW, H % MH
     NW, NH = W - XW, H - XH
 
-    return img.crop((0, NW, 0, NH))
+    return img.crop((0, 0, NW, NH))
