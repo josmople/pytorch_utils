@@ -1,15 +1,14 @@
-import torch
-
-
 def normalize(tensor, mean, std, inplace=False):
+    from torch import as_tensor
+
     if not inplace:
         tensor = tensor.clone()
 
     dtype = tensor.dtype
     device = tensor.device
 
-    mean = torch.as_tensor(mean, dtype=dtype, device=device)
-    std = torch.as_tensor(std, dtype=dtype, device=device)
+    mean = as_tensor(mean, dtype=dtype, device=device)
+    std = as_tensor(std, dtype=dtype, device=device)
 
     if tensor.dim() == 3:
         tensor.sub_(mean[:, None, None]).div_(std[:, None, None])
@@ -20,14 +19,16 @@ def normalize(tensor, mean, std, inplace=False):
 
 
 def denormalize(tensor: torch.Tensor, mean, std, inplace=False):
+    from torch import as_tensor
+
     if not inplace:
         tensor = tensor.clone()
 
     dtype = tensor.dtype
     device = tensor.device
 
-    mean = torch.as_tensor(mean, dtype=dtype, device=device)
-    std = torch.as_tensor(std, dtype=dtype, device=device)
+    mean = as_tensor(mean, dtype=dtype, device=device)
+    std = as_tensor(std, dtype=dtype, device=device)
 
     if tensor.dim() == 3:
         tensor.mul_(std[:, None, None]).add_(mean[:, None, None])

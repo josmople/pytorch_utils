@@ -1,9 +1,9 @@
-import torch.utils.data as data
+from torch.utils.data import Dataset as _Dataset
 
 from .defaults import image_loader
 
 
-class ValueDataset(data.Dataset):
+class ValueDataset(_Dataset):
 
     def __init__(self, values, transform=None):
         self.values = values
@@ -19,7 +19,7 @@ class ValueDataset(data.Dataset):
         return value
 
 
-class ZipDataset(data.Dataset):
+class ZipDataset(_Dataset):
 
     def __init__(self, dataset, *others, zip_transform=None):
         assert all([len(dataset) == len(other) for other in others]), "Sizes of all dataset must be the same"

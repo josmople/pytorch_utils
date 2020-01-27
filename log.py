@@ -1,15 +1,15 @@
-from abc import ABC, abstractmethod
+from abc import ABC as _ABC, abstractmethod as _abstractmethod
 
 
-class PathResolution(ABC):
+class PathResolution(_ABC):
 
     @property
-    @abstractmethod
+    @_abstractmethod
     def dirpath(self):
         pass
 
     @classmethod
-    @abstractmethod
+    @_abstractmethod
     def __call__(self):
         pass
 

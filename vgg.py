@@ -1,4 +1,5 @@
-import torch.nn as nn
+from torch.nn import Module as _Module
+
 import torchvision.models.vgg as vgg
 
 
@@ -20,7 +21,7 @@ def vgg_denormalize(tensor):
     )
 
 
-class VGGExtractor(nn.Module):
+class VGGExtractor(_Module):
 
     @staticmethod
     def layername_index_mapping(features):
