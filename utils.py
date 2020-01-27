@@ -7,8 +7,8 @@ def module_param_grad(module, requires_grad=False):
 
 
 def freeze_module(module):
-    return module_param_grad(module_param_grad, False)
+    return module_param_grad(module, False)
 
 
 def unfreeze_module(module):
-    return module_param_grad(module_param_grad, True)
+    return module_param_grad(module, True)
