@@ -54,5 +54,23 @@ def timestamp(template="%Y-%m-%d %H-%M-%S.%f"):
     return path
 
 
-def log_metric(tag, value, step):
-    pass
+def logdir(dirpath="logs/{start_ts}", **configs):
+    start_ts = timestamp()
+
+    def default_meta():
+        meta = {
+            'start_ts': start_ts,
+            'ts': timestamp(),
+        }
+        for key in configs:
+            val = configs[key]
+            if callable(val):
+                val = val()
+            meta[key] = val
+        return meta
+
+    return LogDir(
+        dirpath.format(**default_meta()),
+        default_prepare=True,
+        default_meta=default_meta
+    )

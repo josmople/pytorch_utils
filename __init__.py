@@ -1,3 +1,13 @@
-from . import data, defaults, io, log, nn, transform
+from . import check, data, defaults, img, io, log, nn, transform, vgg
 
-__all__ = ['data', 'defaults', 'io', 'log', 'nn', 'transform']
+__all__ = [
+    'check',
+    'data',
+    'defaults',
+    'img',
+    'io',
+    'log',
+    'nn',
+    'transform',
+    'vgg'
+]
