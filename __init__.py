@@ -1,4 +1,4 @@
-from . import check, data, defaults, img, io, log, nn, transform, vgg
+from . import check, data, defaults, img, io, log, nn, transform, utils, vgg
 
 __all__ = [
     'check',
@@ -9,5 +9,6 @@ __all__ = [
     'log',
     'nn',
     'transform',
+    'utils',
     'vgg'
 ]
