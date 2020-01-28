@@ -1,9 +1,10 @@
-from . import check, data, defaults, img, io, log, nn, transform, utils, vgg
+from . import check, data, defaults, func, img, io, log, nn, transform, utils, vgg
 
 __all__ = [
     'check',
     'data',
     'defaults',
+    'func',
     'img',
     'io',
     'log',
