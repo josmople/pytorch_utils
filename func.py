@@ -7,4 +7,4 @@ def no_grad(fn):
         with no_grad():
             return fn(*args, **kwargs)
 
-    return new_fn
+    return no_grad_fn
