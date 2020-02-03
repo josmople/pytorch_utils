@@ -1,6 +1,59 @@
 from abc import ABC as _ABC, abstractmethod as _abstractmethod
 
 
+class Context:
+
+    def __init__(self, **kwds):
+        object.__setattr__(self, "data", kwds)
+
+    def __call__(self, **overrides):
+        output = overrides
+
+        for key, val in ~self.items():
+            if key in output:
+                continue
+            output[key] = val
+
+        for key, val in output.items():
+            if callable(val):
+                output[key] = val()
+
+        return output
+
+    def __invert__(self):
+        return object.__getattribute__(self, "data")
+
+    def __getattr__(self, k):
+        return (~self)[k]
+
+    def __setattr__(self, k, v):
+        (~self)[k] = v
+
+    def __len__(self):
+        return len(~self)
+
+    def __getitem__(self, k):
+        return (~self)[k]
+
+    def __setitem__(self, k, v):
+        (~self)[k] = v
+
+    def __delitem__(self, v):
+        del (~self)[v]
+
+    def __contains__(self, k):
+        return k in ~self
+
+    def __iter__(self):
+        return iter(~self)
+
+    def __str__(self):
+        return str(~self)
+
+    def __repr__(self):
+        return f"Context(data={str(~self)})"
+
+
 class PathResolution(_ABC):
 
     @property
@@ -106,6 +159,10 @@ class PytorchLogger:
         from torch import save
         assert isinstance(module, Module)
         save(module.state_dict(), self.logdir(path))
+
+    def log_artifact(self, destpath, srcpath, follow_symlinks=True):
+        from shutil import copyfile
+        copyfile(srcpath, self.logdir(destpath))
 
     def log_scalar(self, tag, value, step):
         import tensorflow as tf
