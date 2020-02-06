@@ -68,8 +68,19 @@ class AugDataset(_Dataset):
 class FileDataset(ValueDataset):
 
     def __init__(self, pathname, transform=None, *, recursive=False, key=None, reverse=False):
-        from .io import glob
-        values = glob(pathname, recursive=recursive, key=key, reverse=reverse)
+        from glob import glob
+
+        if isinstance(pathname, str):
+            pathname = [pathname]
+
+        assert isinstance(pathname, (list, tuple))
+        assert all([isinstance(p, str) for p in pathname])
+
+        values = []
+        for path in pathname:
+            values += glob(path, recursive=recursive)
+
+        values = sorted(values, key=key, reverse=reverse)
         super().__init__(values=values, transform=transform)
 
 
