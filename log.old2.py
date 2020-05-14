@@ -1,5 +1,4 @@
 from abc import ABC as _ABC, abstractmethod as _abstractmethod
-import string as _string
 
 
 class Context:
@@ -7,14 +6,25 @@ class Context:
     def __init__(self, **kwds):
         object.__setattr__(self, "data", kwds)
 
+    def __call__(self, **overrides):
+        output = overrides
+
+        for key, val in ~self.items():
+            if key in output:
+                continue
+            output[key] = val
+
+        for key, val in output.items():
+            if callable(val):
+                output[key] = val()
+
+        return output
+
     def __invert__(self):
         return object.__getattribute__(self, "data")
 
     def __getattr__(self, k):
-        v = (~self)[k]
-        if callable(v):
-            return v()
-        return v
+        return (~self)[k]
 
     def __setattr__(self, k, v):
         (~self)[k] = v
@@ -44,23 +54,22 @@ class Context:
         return f"Context(data={str(~self)})"
 
 
-class _DefaultStrFormatter(_string.Formatter):
-    def __init__(self, default_fn=lambda k: f"{{{k}}}"):
-        self.default_fn = default_fn
+class PathResolution(_ABC):
 
-    def get_value(self, key, args, kwds):
-        if isinstance(key, str):
-            return kwds.get(key, self.default_fn(key))
+    @property
+    @_abstractmethod
+    def dirpath(self):
+        pass
 
-        if key >= 0 and key < len(args):
-            return args[key]
-        return self.default_fn(key)
-
-
-_formatter = _DefaultStrFormatter(default_fn=lambda k: f"{{{k}}}")
+    @classmethod
+    @_abstractmethod
+    def __call__(self):
+        pass
 
 
-class PathResolution:
+class LogDir(PathResolution):
+
+    dirpath = ""
 
     def __init__(self, *paths, default_prepare=True, default_meta=None):
         from os.path import join
@@ -68,27 +77,25 @@ class PathResolution:
         self.default_prepare = default_prepare
         self.default_meta = default_meta
 
-    def resolve_path(path, vals):
-        return _formatter.vformat(path, args=[], kwargs=vals)
-
-    def prepare_path(path):
-        dirpath = dirname(path)
-        if not exists(dirpath) or isfile(dirpath):
-            makedirs(dirpath)
-
     def __call__(self, *paths, prepare=None, meta=None):
         from os.path import join, dirname, exists, isfile, normpath
         from os import makedirs
 
         path = join(self.dirpath, *paths)
 
-        if self.default_meta is not None:
-            path = self.resolve_path(path, self.default_meta)
+        if meta is None:
+            meta = self.default_meta
+        if callable(meta):
+            meta = meta()
         if meta is not None:
-            path = self.resolve_path(path, meta)
+            path = path.format(**meta)
 
-        if self.default_prepare if prepare is None else prepare:
-            self.prepare_path(path)
+        if prepare is None:
+            prepare = self.default_prepare
+        if prepare:
+            dirpath = dirname(path)
+            if not exists(dirpath) or isfile(dirpath):
+                makedirs(dirpath)
 
         return normpath(path)
 
