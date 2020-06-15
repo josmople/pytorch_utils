@@ -33,7 +33,7 @@ def dmap(values, transform=None, force_iter=False):
 def dzip(*datasets, zip_transform=None):
     zip_transform = zip_transform or identity_transform
 
-    # Check if there are IterableDataset, then use IterableZipDataset
+    # Check if there are IterableDataset, then use ZipIterableDataset
     from torch.utils.data import IterableDataset
     if any([isinstance(ds, IterableDataset) for ds in datasets]):
 
