@@ -1,7 +1,16 @@
 
+#####################################################
+# Basic Functions
+#####################################################
+
+
 def identity_transform(x):
     return x
 
+
+#####################################################
+# Dataset Operations
+#####################################################
 
 def dmap(values, transform=None, force_iter=False):
     transform = transform or identity_transform
@@ -35,6 +44,18 @@ def dzip(*datasets, zip_transform=None):
     from .model import ZipDataset
     return ZipDataset(datasets, zip_transform)
 
+
+def daug(dataset, aug_fn):
+    return AugDataset(dataset, aug_fn)
+
+
+def dcache(dataset, cache):
+    return CachedDataset(dataset, cache)
+
+
+#####################################################
+# Dataset Constructors
+#####################################################
 
 def files(paths, transform=None, *, glob_recursive=False, sort_key=None, sort_reverse=False):
     from .search import glob
@@ -92,29 +113,71 @@ def tensors(paths, transform=None, *, tensor_loader=None, glob_recursive=False, 
     return files(paths, tensor_transform, glob_recursive=glob_recursive, sort_key=sort_key, sort_reverse=sort_reverse)
 
 
-def augment(dataset, aug_fn):
-    return AugDataset(dataset, aug_fn)
+#####################################################
+# Cache Constructors
+#####################################################
+
+def create_cache(load_fn, save_fn, exist_fn):
+    assert callable(load_fn)
+    assert callable(save_fn)
+    assert callable(exist_fn)
+
+    from .cache import LambdaCache
+    return LambdaCache(save_fn=save_fn, load_fn=load_fn, exist_fn=exist_fn)
 
 
-def cache_torch_tensor(dataset, cachedir):
-    assert isinstance(cachedir, str)
+def create_file_cache(cache_dir, load_fn, save_fn, make_dir=True):
+    assert isinstance(cache_dir, str)
+    assert callable(load_fn)
+    assert callable(save_fn)
 
-    def path_fn(idx):
-        return cachedir.format(idx=idx)
+    from functools import partial
+    path_fn = partial(cache_dir.format, idx=idx)
 
     try:
         sample_filepath = path_fn(0)
     except Exception as e:
         from .log import eprint
-        eprint("The parameter `cachedir` must contain the token `{idx}` for string formatting")
+        eprint("The parameter `cache_dir` must contain the token `{idx}` for string formatting")
         raise e
 
-    from os.path import dirname
-    dirpath = dirname(sample_filepath)
+    if make_dir:
+        from os.path import dirname
+        dirpath = dirname(sample_filepath)
 
-    from os import makedirs
-    makedirs(dirpath, exist_ok=True)
+        from os import makedirs
+        makedirs(dirpath, exist_ok=True)
 
-    from .model import CachedDataset
-    from .cache import TorchTensorCache
-    return CachedDataset(dataset, TorchTensorCache(path_fn))
+    from .cache import FileCache
+    cache = FileCache(path_fn=path_fn, save_fn=save_fn, load_fn=load_fn)
+
+    return cache
+
+
+def create_tensor_cache(cache_dir, make_dir=True):
+    from functools import wraps
+    from torch import load, save
+
+    @wraps(load)
+    def load_pytorch_tensor(path):
+        return load(path)
+
+    @wraps(save)
+    def save_pytorch_tensor(path, tensor):
+        return save(tensor, path)
+
+    return create_file_cache(cache_dir, load_fn=load_pytorch_tensor, save_fn=save_pytorch_tensor, make_dir=make_dir)
+
+
+#####################################################
+# Cache Dataset Macros
+#####################################################
+
+def dcache_file(dataset, cache_dir, load_fn, save_fn, make_dir=True):
+    cache = create_file_cache(cache_dir, load_fn, save_fn, make_dir=make_dir)
+    return dcache(dataset, cache)
+
+
+def dcache_tensor(dataset, cache_dir, make_dir=True):
+    cache = create_tensor_cache(cache_dir, make_dir=make_dir)
+    return dcache(dataset, cache)
