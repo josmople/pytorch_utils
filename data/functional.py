@@ -59,7 +59,7 @@ def dcache(dataset, cache):
 
 def files(paths, transform=None, *, glob_recursive=False, sort_key=None, sort_reverse=False):
     from .search import glob
-    return dmap(glob(paths, recursive=glob_recursive, key=sort_key, reverse=sort_reverse), transform)
+    return dmap(glob(paths, recursive=glob_recursive, key=sort_key, reverse=sort_reverse, unique=True), transform)
 
 
 def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader=None, img_autoclose=True, glob_recursive=False, sort_key=None, sort_reverse=False):
