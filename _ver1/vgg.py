@@ -90,8 +90,7 @@ class VGGExtractor(_Module):
         if fetches is None:
             return self.model(x)
         if isinstance(fetches, (int, str)):
-            fetches = [fetches]
-            fetches = self.__class__.fetches_to_idxs(fetches, self.mapping)
+            fetches = self.__class__.fetches_to_idxs([fetches], self.mapping)
             return self.forward0(x, fetches)[0]
         if isinstance(fetches, (tuple, list)):
             fetches = self.__class__.fetches_to_idxs(fetches, self.mapping)
@@ -101,7 +100,7 @@ class VGGExtractor(_Module):
     def forward0(self, x, idxs):
         assert isinstance(idxs, (list, tuple))
         assert all([isinstance(idx, int) for idx in idxs])
-        assert all([idx >= -2 for idx in idxs])
+        assert all([idx >= -2 and idx < len(self.model) for idx in idxs])
 
         outputs = {}
 

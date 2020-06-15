@@ -54,6 +54,7 @@ class _DefaultStrFormatter(_string.Formatter):
 
         if key >= 0 and key < len(args):
             return args[key]
+
         return self.default_fn(key)
 
 
