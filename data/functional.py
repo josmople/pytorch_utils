@@ -118,21 +118,15 @@ def tensors(paths, transform=None, *, tensor_loader=None, glob_recursive=False, 
 #####################################################
 
 def create_cache(load_fn, save_fn, exist_fn):
-    assert callable(load_fn)
-    assert callable(save_fn)
-    assert callable(exist_fn)
-
     from .cache import LambdaCache
     return LambdaCache(save_fn=save_fn, load_fn=load_fn, exist_fn=exist_fn)
 
 
 def create_file_cache(cache_dir, load_fn, save_fn, make_dir=True):
     assert isinstance(cache_dir, str)
-    assert callable(load_fn)
-    assert callable(save_fn)
 
-    from functools import partial
-    path_fn = partial(cache_dir.format, idx=idx)
+    def path_fn(idx):
+        return cache_dir.format(idx=idx)
 
     try:
         sample_filepath = path_fn(0)

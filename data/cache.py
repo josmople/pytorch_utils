@@ -13,6 +13,10 @@ class Cache(object):
 class LambdaCache(Cache):
 
     def __init__(self, save_fn, load_fn, exist_fn):
+        assert callable(save_fn)
+        assert callable(load_fn)
+        assert callable(exist_fn)
+
         self.save_fn = save_fn
         self.load_fn = load_fn
         self.exist_fn = exist_fn
@@ -21,7 +25,7 @@ class LambdaCache(Cache):
         return self.load_fn(idx)
 
     def __setitem__(self, idx, val):
-        return self.save_fn(idx, val)
+        self.save_fn(idx, val)
 
     def __contains__(self, idx):
         return self.exist_fn(idx)
@@ -32,6 +36,11 @@ class FileCache(Cache):
     def __init__(self, path_fn, save_fn, load_fn, exist_fn=None):
         from os.path import exists
         exist_fn = exist_fn or exists
+
+        assert callable(path_fn)
+        assert callable(save_fn)
+        assert callable(load_fn)
+        assert callable(exist_fn)
 
         self.path_fn = path_fn
         self.save_fn = save_fn
@@ -44,8 +53,49 @@ class FileCache(Cache):
 
     def __setitem__(self, idx, val):
         path = self.path_fn(idx)
-        return self.save_fn(path, val)
+        self.save_fn(path, val)
 
     def __contains__(self, idx):
         path = self.path_fn(idx)
         return self.exist_fn(path)
+
+
+class ProxyCache(Cache):
+
+    def __init__(self, obj):
+        assert callable(getattr(obj, "__getitem__", None))
+        assert callable(getattr(obj, "__setitem__", None))
+        assert callable(getattr(obj, "__contains__", None))
+
+        self.obj = obj
+
+    def __getitem__(self, idx):
+        return self.obj[idx]
+
+    def __setitem__(self, idx, val):
+        self.obj[idx] = val
+
+    def __contains__(self, idx):
+        return idx in self.obj
+
+
+class DictionaryCache(Cache):
+
+    def __init__(self, data=None, duplicate=True):
+        data = data or {}
+        assert isinstance(data, dict)
+
+        if duplicate:
+            self.data = {}
+            self.data.update(**data)
+        else:
+            self.data = data
+
+    def __getitem__(self, idx):
+        return self.data[idx]
+
+    def __setitem__(self, idx, val):
+        self.data[idx] = val
+
+    def __contains__(self, idx):
+        return idx in self.data
