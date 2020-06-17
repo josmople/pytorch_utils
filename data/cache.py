@@ -1,4 +1,4 @@
-class Cache(object):
+class Cache:
 
     def __getitem__(self, idx):
         raise NotImplementedError()

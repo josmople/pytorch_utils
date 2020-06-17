@@ -1,25 +1,20 @@
+def eprint(*args, **kwds):
+    from sys import stderr
+    print(*args, file=stderr, **kwds)
 
 
-def create_context(**kwds):
-    from .context import Context
+def folder(*paths, prepare=True):
+    from os.path import join, dirname
+    path = join(*paths)
+    path = dirname(path)
+    if prepare:
+        from os import makedirs
+        makedirs(path, exist_ok=True)
+    return path
 
-    def create_internal_context(k):
-        return Context(DEFAULT=create_internal_context)
 
-    c = Context(DEFAULT=create_internal_context, **kwds)
-
-    from .basic import timestamp
-    from functools import wraps
-
-    @wraps(timestamp)
-    def get_timestamp():
-        return timestamp(c.ts_template)
-
-    c.ts_template = c.ts_template or "%Y-%m-%d %H-%M-%S.%f"
-    c.start_ts = c.start_ts or get_timestamp()
-    c.ts = c.ts or c(get_timestamp)
-
-    from os import getcwd
-    c.cwd = c.cwd or c(getcwd)
-
-    return c
+def timestamp(template="%Y-%m-%d %H-%M-%S.%f"):
+    from datetime import datetime
+    now = datetime.now()
+    path = now.strftime(template)
+    return path
