@@ -78,12 +78,7 @@ class EventValue(_CV):
         assert isinstance(cv, ContextValue)
         self.cv = cv
 
-        # Relative imports, e.g. '.relative_import',  is only applicable for sibling files
-        # import .sibling_file # Allowable
-        # import ..two_folders_behind # Not-Allowable
-        from importlib import import_module
-        events = import_module("events", f"{__file__}/../../events")
-        Event = events.Event
+        from ..events import Event
 
         self.pre_get = Event()
         if callable(pre_get):

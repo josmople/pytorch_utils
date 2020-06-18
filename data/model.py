@@ -3,6 +3,8 @@ from torch.utils.data import Dataset as _Dataset, IterableDataset as _IterableDa
 
 class ValueDataset(_Dataset):
 
+    __slots__ = ["values", "transform"]
+
     def __init__(self, values, transform):
         assert callable(getattr(values, "__len__", None))
         assert callable(getattr(values, "__getitem__", None))
@@ -20,6 +22,8 @@ class ValueDataset(_Dataset):
 
 
 class ValueIterableDataset(_IterableDataset):
+
+    __slots__ = ["values", "transform"]
 
     def __init__(self, values, transform):
         from collections import Iterable
@@ -39,6 +43,8 @@ class ValueIterableDataset(_IterableDataset):
 
 
 class ZipDataset(_Dataset):
+
+    __slots__ = ["datasets", "zip_transform"]
 
     def __init__(self, datasets, zip_transform=None):
         assert len(datasets) > 0
@@ -66,6 +72,8 @@ class ZipDataset(_Dataset):
 
 class ZipIterableDataset(_Dataset):
 
+    __slots__ = ["datasets", "zip_transform"]
+
     def __init__(self, datasets, zip_transform):
         assert len(datasets) > 0
 
@@ -88,6 +96,8 @@ class ZipIterableDataset(_Dataset):
 
 class AugDataset(_IterableDataset):
 
+    __slots__ = ["values", "augment"]
+
     def __init__(self, values, augment):
         from collections import Iterable
         assert isinstance(values, Iterable)
@@ -107,6 +117,8 @@ class AugDataset(_IterableDataset):
 
 
 class CachedDataset(_Dataset):
+
+    __slots__ = ["dataset", "cache"]
 
     def __init__(self, dataset, cache):
         assert callable(getattr(dataset, "__len__", None))

@@ -96,4 +96,4 @@ def vwatch(val, pre_get=None, post_get=None, pre_set=None, post_set=None):
         assert callable(post_set)
         v.post_set += [post_set]
 
-    return v
+    return v, v

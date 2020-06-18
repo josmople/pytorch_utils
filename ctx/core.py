@@ -1,6 +1,3 @@
-# from collections.abc import MutableMapping as _MutableMapping
-
-
 class ContextValue:
 
     def vget(self, key):
@@ -12,8 +9,7 @@ class ContextValue:
 
 class Context:
 
-    Δ = None
-    Φ = None
+    __slots__ = ["Δ", "Φ"]
 
     def __init__(self, data, default=None):
         object.__setattr__(self, "Δ", data)
@@ -42,17 +38,23 @@ class Context:
                 return
         self.Δ[k] = v
 
+    def __delitem__(self, k):
+        del self.Δ[k]
+
     def __getattr__(self, k):
         return self[k]
 
     def __setattr__(self, k, v):
         self[k] = v
 
-    def __delitem__(self, k):
-        del self.Δ[k]
+    def __delattr__(self, k):
+        del self[k]
 
     def __iter__(self):
         return iter(self.Δ)
+
+    def __contains__(self, k):
+        return k in self.Δ
 
     def __len__(self):
         return len(self.Δ)
@@ -65,8 +67,11 @@ class Context:
         for k in iter(self):
             v = self.Δ[k]
 
+            # Evaluates the ContextValue
             if isinstance(v, ContextValue) and (v not in exclude_eval):
                 v = v.vget(k)
+
+            # Recursively evaluate Context and prevents circle-references
             if isinstance(v, Context) and (self not in exclude_eval):
                 v = v(exclude_eval=exclude_eval)
 
