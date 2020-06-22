@@ -1,34 +1,25 @@
-from .core import Logger
+from .core import Logger as _Logger
 
 
 class PrintLogger(Logger):
 
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, echo=True, stream=None):
+        self.echo = echo
 
-        if not isinstance(getattr(config, "echo", None), bool):
-            self.config.echo = True
+        from sys import stdout
+        self.stream = stream or stdout
 
-        from string import Formatter
-        if not isinstance(getattr(config, "formatter", None), Formatter):
-            from .format import get_formatter
-            setattr(self.config, "formatter", get_formatter())
+    def __call__(self, _shared, text, **kwds):
+        try:
+            vals = {k: getattr(_shared, k) for k in iter(_shared)}
+        except:
+            vals = {k: getattr(_shared, k) for k in dir(_shared)}
+        vals.update(kwds)
 
-    def __call__(self, text, output="in"):
-        assert output in ["in", "out", "err"]
-
-        if self.config.echo:
-            from typing import TextIO
-            if not isinstance(getattr(config, f"std{output}", None), TextIO):
-                import sys
-                setattr(self.config, f"std{output}", getattr(sys, f"std{output}"))
-
-        if callable(getattr(self.config, "__getitem__", None)):
-            out = self.formatter.vformat(text, self.config, self.config)
-        else:
-            out = self.formatter.vformat(text, [], self.config.__dict__)
-
-        if self.config.echo:
-            print(out, file=self.stdout)
-
+        out = str(text).format(**vals)
+        if self.echo:
+            print(out, file=self.stream)
         return out
+
+
+del _Logger
