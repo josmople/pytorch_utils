@@ -12,6 +12,8 @@ class Cache:
 
 class LambdaCache(Cache):
 
+    __slots__ = ["save_fn", "load_fn", "exist_fn"]
+
     def __init__(self, save_fn, load_fn, exist_fn):
         assert callable(save_fn)
         assert callable(load_fn)
@@ -32,6 +34,8 @@ class LambdaCache(Cache):
 
 
 class FileCache(Cache):
+
+    __slots__ = ["path_fn", "save_fn", "load_fn", "exist_fn"]
 
     def __init__(self, path_fn, save_fn, load_fn, exist_fn=None):
         from os.path import exists
@@ -62,6 +66,8 @@ class FileCache(Cache):
 
 class ProxyCache(Cache):
 
+    __slots__ = ["obj"]
+
     def __init__(self, obj):
         assert callable(getattr(obj, "__getitem__", None))
         assert callable(getattr(obj, "__setitem__", None))
@@ -80,6 +86,8 @@ class ProxyCache(Cache):
 
 
 class DictionaryCache(Cache):
+
+    __slots__ = ["data"]
 
     def __init__(self, data=None, duplicate=True):
         data = data or {}

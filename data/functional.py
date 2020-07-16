@@ -46,10 +46,12 @@ def dzip(*datasets, zip_transform=None):
 
 
 def daug(dataset, aug_fn):
+    from .model import AugDataset
     return AugDataset(dataset, aug_fn)
 
 
 def dcache(dataset, cache):
+    from .model import CachedDataset
     return CachedDataset(dataset, cache)
 
 
@@ -75,7 +77,7 @@ def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader
             img_loader = pil_loader
         except ModuleNotFoundError as e:
             from .log import eprint
-            eprint("Default image loader is pillow (PIL). Module 'PIL' not found! Try `pip install pillow` or provide custom `img_loader`")
+            eprint("Default image loader is pillow (PIL). Module 'PIL' not found! Try 'pip install pillow' or provide custom 'img_loader'")
             raise e
 
     def img_transform(path):
@@ -102,7 +104,7 @@ def tensors(paths, transform=None, *, tensor_loader=None, glob_recursive=False, 
             tensor_loader = torch_loader
         except ModuleNotFoundError as e:
             from sys import stderr
-            print("Default tensor loader is PyTorch (torch). Module 'torch' not found! Install PyTorch or provide custom `tensor_loader`", file=stderr)
+            print("Default tensor loader is PyTorch (torch). Module 'torch' not found! Install PyTorch or provide custom 'tensor_loader'", file=stderr)
             raise e
 
     def tensor_transform(path):
@@ -123,16 +125,25 @@ def create_cache(load_fn, save_fn, exist_fn):
 
 
 def create_file_cache(cache_dir, load_fn, save_fn, make_dir=True):
-    assert isinstance(cache_dir, str)
 
-    def path_fn(idx):
-        return cache_dir.format(idx=idx)
+    path_fn = None
+    error_msg = "cached_dir must be a string or a callable"
+
+    if isinstance(cache_dir, str):
+        def path_fn(idx):
+            return cache_dir.format(idx=idx)
+        error_msg = "The parameter 'cache_dir:str' must contain the token '{idx}' (e.g. 'cache/{idx:04}.pt') for string formatting"
+
+    elif callable(cache_dir):
+        path_fn = cache_dir
+        error_msg = "The parameter 'cache_dir:Callable' must receive one argument of type 'int' and return value of type 'str'"
 
     try:
         sample_filepath = path_fn(0)
+        assert isinstance(sample_filepath, str)
     except Exception as e:
         from .log import eprint
-        eprint("The parameter `cache_dir` must contain the token `{idx}` for string formatting")
+        eprint(error_msg)
         raise e
 
     if make_dir:
