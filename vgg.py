@@ -3,13 +3,15 @@ from torch.nn import Module as _Module
 import torchvision.models.vgg as vgg
 
 
-def vgg_normalize(
+def normalize(
+    tensor,
     mean=[0.485, 0.456, 0.406],
     std=[0.229, 0.224, 0.225],
     inplace=False
 ):
-    from torchvision.transforms import Normalize
-    return Normalize(
+    from torchvision.transforms.functional import normalize
+    return normalize(
+        tensor,
         mean=mean,
         std=std,
         inplace=inplace
@@ -56,7 +58,7 @@ class VGGExtractor(_Module):
                 raise ValueError("Expected `fetches` to be list[int], list[str]")
         return idxs
 
-    def __init__(self, vgg_nlayer=19, vgg_bn=False, requires_grad=False, inplace_relu=False, preprocess=None, **kwargs):
+    def __init__(self, vgg_nlayer=19, vgg_bn=False, requires_grad=False, inplace_relu=False, **kwargs):
         super().__init__()
 
         assert isinstance(vgg_nlayer, (int, str))
@@ -67,11 +69,6 @@ class VGGExtractor(_Module):
         model_name = f"vgg{vgg_nlayer}{'_bn' if vgg_bn else ''}"
         self.model = getattr(vgg, model_name)(**kwargs).features
         self.mapping = self.__class__.layername_index_mapping(self.model)
-
-        if preprocess is None:
-            def preprocess(x): return x
-        assert callable(preprocess)
-        self.preprocess = preprocess
 
         for param in self.model.parameters():
             param.requires_grad_(requires_grad)
@@ -100,10 +97,7 @@ class VGGExtractor(_Module):
 
         outputs = {}
 
-        if -2 in idxs:
-            outputs[-2] = x
-
-        y = self.preprocess(x)
+        y = x
 
         if -1 in idxs:
             outputs[-1] = y

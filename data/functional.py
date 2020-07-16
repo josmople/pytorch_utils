@@ -60,12 +60,12 @@ def dcache(dataset, cache):
 #####################################################
 
 def files(paths, transform=None, *, glob_recursive=False, sort_key=None, sort_reverse=False):
-    from .search import glob
+    from ..search import glob
     return dmap(glob(paths, recursive=glob_recursive, key=sort_key, reverse=sort_reverse, unique=True), transform)
 
 
 def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader=None, img_autoclose=True, glob_recursive=False, sort_key=None, sort_reverse=False):
-    from .search import fill
+    from ..search import fill
     paths = fill(paths, ext=img_exts)
 
     transform = transform or identity_transform
@@ -90,7 +90,7 @@ def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader
             img.close()
         return out
 
-    from .search import glob
+    from ..search import glob
     return files(paths, img_transform, glob_recursive=glob_recursive, sort_key=sort_key, sort_reverse=sort_reverse)
 
 
@@ -111,7 +111,7 @@ def tensors(paths, transform=None, *, tensor_loader=None, glob_recursive=False, 
         tensor = torch_loader(path)
         return transform(tensor)
 
-    from .search import glob
+    from ..search import glob
     return files(paths, tensor_transform, glob_recursive=glob_recursive, sort_key=sort_key, sort_reverse=sort_reverse)
 
 
