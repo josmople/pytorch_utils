@@ -1,7 +1,7 @@
 from torch.nn import Module as _Module
 
 
-def padding_module(padtype, padding, dim=2):
+def padding(padtype, padding, dim=2):
     import torch.nn.modules.padding as pads
 
     if padtype is None or padtype == "zero":
@@ -36,7 +36,7 @@ def padding_module(padtype, padding, dim=2):
     raise NotImplementedError(f"No such padding type: {padtype}-{dim}d")
 
 
-def activation_module(acttype, **kwargs):
+def activation(acttype, **kwargs):
     from torch.nn import Module
     import torch.nn.modules.activation as acts
     import inspect
