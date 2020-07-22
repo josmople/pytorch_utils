@@ -2,7 +2,7 @@ from . import values as V
 
 vfn = V.LambdaValue
 vconst = V.ConstValue
-vglobe = V.GlobalValue
+vglobal = V.GlobalValue
 vitem = V.ProxyItemValue
 vattr = V.ProxyAttrValue
 
