@@ -4,15 +4,15 @@ assert tf.__version__[0] == "2"
 
 class TfScalarLogger:
 
-    def __init__(self, rootdir):
+    def __init__(self, directory):
 
         if isinstance(rootdir, str):
-            self.rootdir = rootdir
-            self.writer = tf.summary.create_file_writer(rootdir)
+            self.directory = directory
+            self.writer = tf.summary.create_file_writer(directory)
 
         if isinstance(rootdir, tf.summary.SummaryWriter):
-            self.rootdir = None
-            self.writer = rootdir
+            self.directory = None
+            self.writer = directory
 
     def __call__(self, tag, step, value, description=None):
         with self.writer.as_default():

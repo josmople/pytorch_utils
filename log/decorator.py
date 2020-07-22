@@ -1,8 +1,7 @@
 class logpath:
 
-    def __init__(self, argname, autodir=True, resolver="rootdir"):
+    def __init__(self, argname, resolver="directory"):
         self.argname = argname
-        self.autodir = autodir
         self.resolver = resolver
 
     def _missing_resolver(self, val):
@@ -23,10 +22,6 @@ class logpath:
             def path_fn(path):
                 resolver = getattr(other, self.resolver, self._missing_resolver)
                 path = resolver(path) if callable(resolver) else join(str(resolver), path)
-
-                if self.autodir:
-                    dirpath = dirname(path)
-                    makedirs(dirpath, exist_ok=True)
 
                 return path
 

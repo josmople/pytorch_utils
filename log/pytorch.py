@@ -3,8 +3,8 @@ from .decorator import logpath as _logpath
 
 class PyTorchLogger:
 
-    def __init__(self, rootdir=""):
-        self.rootdir = rootdir
+    def __init__(self, directory=""):
+        self.directory = directory
 
     @_logpath("path")
     def module(self, path, module, **kwds):

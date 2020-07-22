@@ -1,3 +1,7 @@
+
+from .strf import mformat, vformat, format
+
+
 def eprint(*args, **kwds):
     from sys import stderr
     print(*args, file=stderr, **kwds)
@@ -20,15 +24,28 @@ def ts(template="%Y-%m-%d %H-%M-%S.%f"):
     return path
 
 
+def context(raw=None):
+    from .ctx import Data
+    return Data(raw or {})
+
+
+def context_interpreter(raw=None):
+    from .ctx import Interpreter
+    return Interpreter(raw or {})
+
+
 def directory(*paths, ctx=None, formatter=None, auto_mkdir=True, auto_norm=True):
-    from dirp import ContextDirp
+    from .ctx import Context
+    if not isinstance(ctx, Context):
+        ctx = context_interpreter(ctx or {})
 
-    if ctx is None:
-        ctx = {}
-        # TODO
+    formatter = formatter or mformat
 
-    if formatter is None:
-        from strf import mformat
-        formatter = mformat
-
+    from .dirp import ContextDirp
     return ContextDirp(*paths, ctx=ctx, formatter=formatter, auto_mkdir=auto_mkdir, auto_norm=auto_norm)
+
+
+def logger(dirpath="/", ctx=None, formatter=None, auto_mkdir=True, auto_norm=True):
+    from .log.pytorch import PyTorchLogger
+    dirp = directory(str(dirpath), ctx=ctx, formatter=formatter, auto_mkdir=auto_mkdir, auto_norm=auto_norm)
+    return PyTorchLogger(dirp)
