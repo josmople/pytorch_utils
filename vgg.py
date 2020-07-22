@@ -1,21 +1,14 @@
 from torch.nn import Module as _Module
 
-import torchvision.models.vgg as vgg
+import torchvision.models.vgg as models
+
+NORMALIZE_MEAN = [0.485, 0.456, 0.406]
+NORMALIZE_STD = [0.229, 0.224, 0.225]
 
 
-def normalize(
-    tensor,
-    mean=[0.485, 0.456, 0.406],
-    std=[0.229, 0.224, 0.225],
-    inplace=False
-):
+def normalize(tensor, mean=NORMALIZE_MEAN, std=NORMALIZE_STD, inplace=False):
     from torchvision.transforms.functional import normalize
-    return normalize(
-        tensor,
-        mean=mean,
-        std=std,
-        inplace=inplace
-    )
+    return normalize(tensor, mean=mean, std=std, inplace=inplace)
 
 
 class VGGExtractor(_Module):
@@ -67,7 +60,7 @@ class VGGExtractor(_Module):
         assert isinstance(inplace_relu, bool)
 
         model_name = f"vgg{vgg_nlayer}{'_bn' if vgg_bn else ''}"
-        self.model = getattr(vgg, model_name)(**kwargs).features
+        self.model = getattr(models, model_name)(**kwargs).features
         self.mapping = self.__class__.layername_index_mapping(self.model)
 
         for param in self.model.parameters():
@@ -114,3 +107,6 @@ class VGGExtractor(_Module):
                 break
 
         return [outputs[idx] for idx in idxs]
+
+
+del _Module

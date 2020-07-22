@@ -1,112 +1,136 @@
-from .core import ContextValue as _CV
+from .context import ContextValue
 
 
-class LambdaValue(_CV):
+class LambdaValue(ContextValue):
 
     @staticmethod
-    def _undefined_getter(k):
+    def _getter_unallowed(key):
         raise Exception(f"getter for {k} is undefined")
 
     @staticmethod
-    def _undefined_setter(k, v):
+    def _setter_unallowed(key, val):
         raise Exception(f"setter for {k} is undefined")
 
-    def __init__(self, getter, setter=None):
-        self.getter = getter or self.__class__._undefined_getter
-        self.setter = setter or self.__class__._undefined_setter
+    @staticmethod
+    def _deleter_unallowed(key):
+        raise Exception(f"deleter for {k} is undefined")
 
-        assert callable(self.getter)
-        assert callable(self.setter)
+    def __init__(self, getter=None, setter=None, deleter=None):
+        self.getter = getter or self._getter_unallowed
+        self.setter = setter or self._setter_unallowed
+        self.deleter = deleter or self._deleter_unallowed
 
     def vget(self, key):
         return self.getter(key)
 
     def vset(self, key, val):
-        old_val = self.getter(key)
-        self.setter(key, val)
-        return old_val
+        return self.setter(key, val)
+
+    def vdel(self, key):
+        return self.deleter(key)
+
+    def __str__(self):
+        return f"{self.__class__.__name__}"
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(getter={self.getter}, setter={self.setter}, deleter={self.deleter})"
 
 
-class ConstantValue(_CV):
+class ProxyAttrValue(ContextValue):
 
-    def __init__(self, val, error="Cannot set {key} to {nval}. It has constant value of {val}."):
-        self.val = val
-        self.error = error
-
-    def vget(self, key):
-        return self.val
-
-    def vset(self, key, val):
-        if self.error:
-            raise Exception(str(error).format(key=key, val=self.val, nval=val))
-        return self.val
-
-
-class DatabaseValue(_CV):
-
-    def __init__(self, data, allow_read=True, allow_write=True, error_read="Read-access denied on value of {key}.", error_write="Write-access denied on value of {key}."):
-        self.data = data
+    def __init__(self, obj, key, allow_read=True, allow_write=True, allow_delete=True):
+        self.obj = obj
+        self.key = key
         self.allow_read = allow_read
         self.allow_write = allow_write
-        self.error_read = error_read
-        self.error_write = error_write
+        self.allow_delete = allow_delete
 
     def vget(self, key):
         if self.allow_read:
-            return self.data[key]
-        if self.error_read:
-            raise Exception(str(self.error_read).format(key=key))
+            return getattr(self.obj, self.key)
+        raise Exception(f"Reading db[{self.key}] is not allowed")
 
     def vset(self, key, val):
-        if self.allow_read:
-            old_val = self.data[key]
-        else:
-            old_val = None
-
         if self.allow_write:
-            self.data[key] = val
-        elif self.error_write:
-            raise Exception(str(self.error_write).format(key=key, val=old_val, nval=val))
+            setattr(self.obj, self.key, val)
+        raise Exception(f"Writing db[{self.key}] is not allowed")
 
-        return old_val
+    def vdel(self, key):
+        if self.allow_delete:
+            delattr(self.obj, self.key)
+        raise Exception(f"Deleting db[{self.key}] is not allowed")
+
+    def __str__(self):
+        return f"{self.__class__.__name__}"
+
+    def __repr__(self):
+        access = f"{int(self.allow_read)}{int(self.allow_write)}{int(self.allow_delete)}"
+        return f"{self.__class__.__name__}(key={repr(self.key)},access={access})"
 
 
-class EventValue(_CV):
+class ProxyItemValue(ContextValue):
 
-    def __init__(self, cv, pre_get=None, post_get=None, pre_set=None, post_set=None):
-        from .core import ContextValue
-        assert isinstance(cv, ContextValue)
-        self.cv = cv
-
-        from ..events import Event
-
-        self.pre_get = Event()
-        if callable(pre_get):
-            self.pre_get += [pre_get]
-
-        self.post_get = Event()
-        if callable(post_get):
-            self.post_get += [post_get]
-
-        self.pre_set = Event()
-        if callable(pre_set):
-            self.pre_set += [pre_set]
-
-        self.post_set = Event()
-        if callable(post_set):
-            self.post_set += [post_set]
+    def __init__(self, obj, key, allow_read=True, allow_write=True, allow_delete=True):
+        self.obj = obj
+        self.key = key
+        self.allow_read = allow_read
+        self.allow_write = allow_write
+        self.allow_delete = allow_delete
 
     def vget(self, key):
-        self.pre_get(key)
-        val = self.cv.vget(key)
-        self.post_get(key, val)
-        return val
+        if self.allow_read:
+            return self.obj[self.key]
+        raise Exception(f"Reading db[{self.key}] is not allowed")
 
     def vset(self, key, val):
-        self.pre_set(key, val)
-        old_val = self.cv.vset(key, val)
-        self.post_set(key, val, old_val)
-        return old_val
+        if self.allow_write:
+            self.obj[self.key] = val
+        raise Exception(f"Writing db[{self.key}] is not allowed")
+
+    def vdel(self, key):
+        if self.allow_delete:
+            del self.obj[self.key]
+        raise Exception(f"Deleting db[{self.key}] is not allowed")
+
+    def __str__(self):
+        return f"{self.__class__.__name__}"
+
+    def __repr__(self):
+        access = f"{int(self.allow_read)}{int(self.allow_write)}{int(self.allow_delete)}"
+        return f"{self.__class__.__name__}(key={repr(self.key)},access={access})"
 
 
-del _CV
+class GlobalValue(ProxyItemValue):
+
+    def __init__(self, key, allow_read=True, allow_write=True, allow_delete=True, stack_idx=1):
+        from inspect import stack
+        db = stack()[stack_idx][0].f_globals
+        super().__init__(obj=db, key=key, allow_read=allow_read, allow_write=allow_write, allow_delete=allow_delete)
+
+    def __str__(self):
+        return f"{self.__class__.__name__}"
+
+    def __repr__(self):
+        access = f"{int(self.allow_read)}{int(self.allow_write)}{int(self.allow_delete)}"
+        return f"{self.__class__.__name__}(key={repr(self.key)},access={access})"
+
+
+class ConstValue(ContextValue):
+
+    def __init__(self, val):
+        self.val = val
+
+    def vget(self, key):
+        return self.val
+
+    def vset(self, key, val):
+        raise Exception(f"Cannot overwrite constant: {self.val}")
+
+    def vdel(self, key):
+        raise Exception(f"Cannot delete constant: {self.val}")
+
+    def __str__(self):
+        return str(self.val)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(val={repr(self.val)})"
