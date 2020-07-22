@@ -39,7 +39,7 @@ class PyTorchLogger:
             if tensor.dim() == 3:
                 tensor = tensor.unsqueeze(0)
             if tensor.dim() == 4:
-                save_image(tensor.cpu(), path, nrow=nrow, **kwds)
+                save_image(tensor.cpu(), path, **kwds)
                 return path
 
             raise NotImplementedError("Supported `torch.Tensor` formats: 4-dim (NxCxHxW), 3-dim (CxHxW)")
