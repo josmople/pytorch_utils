@@ -1,4 +1,4 @@
-from .context import *
+from .context import factory
 from .functional import *
 from . import values
 
