@@ -29,7 +29,7 @@ class PyTorchLogger:
         copyfile(src=srcpath, dst=dstpath, follow_symlinks=follow_symlinks)
 
     @_logpath("path")
-    def image(self, path, img):
+    def image(self, path, img, **kwds):
         from torch import Tensor
         from torchvision.utils import save_image
         from PIL.Image import Image
@@ -39,13 +39,13 @@ class PyTorchLogger:
             if tensor.dim() == 3:
                 tensor = tensor.unsqueeze(0)
             if tensor.dim() == 4:
-                save_image(tensor.cpu(), path, nrow=nrow, **kwargs)
+                save_image(tensor.cpu(), path, nrow=nrow, **kwds)
                 return path
 
             raise NotImplementedError("Supported `torch.Tensor` formats: 4-dim (NxCxHxW), 3-dim (CxHxW)")
 
         if isinstance(img, Image):
-            img.save(path, **kwargs)
+            img.save(path, **kwds)
             return path
 
         raise NotImplementedError("Supported image formats: `torch.Tensor`, `PIL.Image`")
