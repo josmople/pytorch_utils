@@ -38,6 +38,8 @@ def directory(*paths, ctx=None, formatter=None, auto_mkdir=True, auto_norm=True)
     from .ctx import Context
     if not isinstance(ctx, Context):
         ctx = context_interpreter(ctx or {})
+    elif ctx.__class__.__name__.find("@C") == -1:
+        ctx = context_interpreter(ctx)
 
     formatter = formatter or mformat
 
