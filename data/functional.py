@@ -45,7 +45,7 @@ def dzip(*datasets, zip_transform=None):
     return ZipDataset(datasets, zip_transform)
 
 
-def daug(dataset, aug_fn):
+def daugment(dataset, aug_fn):
     from .model import AugDataset
     return AugDataset(dataset, aug_fn)
 
@@ -60,12 +60,12 @@ def dcache(dataset, cache):
 #####################################################
 
 def files(paths, transform=None, *, glob_recursive=False, sort_key=None, sort_reverse=False):
-    from ..search import glob
+    from .utils import glob
     return dmap(glob(paths, recursive=glob_recursive, key=sort_key, reverse=sort_reverse, unique=True), transform)
 
 
 def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader=None, img_autoclose=True, glob_recursive=False, sort_key=None, sort_reverse=False):
-    from ..search import fill
+    from .utils import fill
     paths = fill(paths, ext=img_exts)
 
     transform = transform or identity_transform
@@ -90,7 +90,7 @@ def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader
             img.close()
         return out
 
-    from ..search import glob
+    from .utils import glob
     return files(paths, img_transform, glob_recursive=glob_recursive, sort_key=sort_key, sort_reverse=sort_reverse)
 
 
@@ -111,7 +111,7 @@ def tensors(paths, transform=None, *, tensor_loader=None, glob_recursive=False, 
         tensor = torch_loader(path)
         return transform(tensor)
 
-    from ..search import glob
+    from .utils import glob
     return files(paths, tensor_transform, glob_recursive=glob_recursive, sort_key=sort_key, sort_reverse=sort_reverse)
 
 
@@ -119,12 +119,12 @@ def tensors(paths, transform=None, *, tensor_loader=None, glob_recursive=False, 
 # Cache Constructors
 #####################################################
 
-def create_cache(load_fn, save_fn, exist_fn):
+def cache_create(load_fn, save_fn, exist_fn):
     from .cache import LambdaCache
     return LambdaCache(save_fn=save_fn, load_fn=load_fn, exist_fn=exist_fn)
 
 
-def create_file_cache(cache_dir, load_fn, save_fn, make_dir=True):
+def cache_file(cache_dir, load_fn, save_fn, make_dir=True):
 
     path_fn = None
     error_msg = "cached_dir must be a string or a callable"
@@ -159,7 +159,7 @@ def create_file_cache(cache_dir, load_fn, save_fn, make_dir=True):
     return cache
 
 
-def create_tensor_cache(cache_dir, make_dir=True):
+def cache_tensor(cache_dir, make_dir=True):
     from functools import wraps
     from torch import load, save
 
@@ -171,7 +171,7 @@ def create_tensor_cache(cache_dir, make_dir=True):
     def save_pytorch_tensor(path, tensor):
         return save(tensor, path)
 
-    return create_file_cache(cache_dir, load_fn=load_pytorch_tensor, save_fn=save_pytorch_tensor, make_dir=make_dir)
+    return cache_file(cache_dir, load_fn=load_pytorch_tensor, save_fn=save_pytorch_tensor, make_dir=make_dir)
 
 
 #####################################################
@@ -179,10 +179,10 @@ def create_tensor_cache(cache_dir, make_dir=True):
 #####################################################
 
 def dcache_file(dataset, cache_dir, load_fn, save_fn, make_dir=True):
-    cache = create_file_cache(cache_dir, load_fn, save_fn, make_dir=make_dir)
+    cache = cache_file(cache_dir, load_fn, save_fn, make_dir=make_dir)
     return dcache(dataset, cache)
 
 
 def dcache_tensor(dataset, cache_dir, make_dir=True):
-    cache = create_tensor_cache(cache_dir, make_dir=make_dir)
+    cache = cache_tensor(cache_dir, make_dir=make_dir)
     return dcache(dataset, cache)
