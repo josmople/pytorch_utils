@@ -191,9 +191,10 @@ class ContextBase(metaclass=ContextFactoryMeta):
 
 class Data(ContextBase[dict(use_cval=False)]):
 
-    def __init__(self, data=None, default=None):
+    def __init__(self, data=None, default=ContextNull):
         super().__init__(data)
-        self(val=default)
+        if default is not ContextNull:
+            self(val=default)
 
 
 from .vals import LambdaValue as _FN
@@ -205,9 +206,10 @@ def _interpreter_default_fn(k):
 
 class Interpreter(ContextBase[dict(use_cval=True)]):
 
-    def __init__(self, data=None, default=_FN(_interpreter_default_fn)):
+    def __init__(self, data=None, default=ContextNull):
         super().__init__(data)
-        self(val=default)
+        if default is not ContextNull:
+            self(val=default)
 
 
 del _FN, _interpreter_default_fn
