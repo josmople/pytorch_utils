@@ -1,20 +1,25 @@
 from .context import Context, ContextValue, factory
 from .functional import *
 from . import values
-
-Data = factory()
-Interpreter = factory(use_cval=True)
+from . import ops
 
 
-def _create_context_default_fn(k):
+class Data(factory()):
+
+    def __init__(self, data=None, default=None):
+        super().__init__(data)
+        self(val=default)
+
+
+def _interpreter_default_fn(k):
     raise ValueError(f"Default value is not set: Key '{k}' is missing")
 
 
-def create_context(raw=None, default_fn=_create_context_default_fn):
-    raw = raw or {}
-    if default_fn is not None:
-        raw["__default__"] = vfn(default_fn)
-    return Data(raw), Interpreter(raw)
+class Interpreter(factory(use_cval=True)):
+
+    def __init__(self, data=None, default=vfn(_interpreter_default_fn)):
+        super().__init__(data)
+        self(val=default)
 
 
-del _create_context_default_fn
+del _interpreter_default_fn

@@ -38,8 +38,8 @@ class LambdaValue(ContextValue):
 
 class ProxyAttrValue(ContextValue):
 
-    def __init__(self, obj, key=None, allow_read=True, allow_write=True, allow_delete=True):
-        self.obj = obj
+    def __init__(self, db, key=None, allow_read=True, allow_write=True, allow_delete=True):
+        self.db = db
         self.key = key
         self.allow_read = allow_read
         self.allow_write = allow_write
@@ -47,17 +47,17 @@ class ProxyAttrValue(ContextValue):
 
     def vget(self, key):
         if self.allow_read:
-            return getattr(self.obj, self.key or key)
+            return getattr(self.db, self.key or key)
         raise Exception(f"Reading db[{self.key}] is not allowed")
 
     def vset(self, key, val):
         if self.allow_write:
-            setattr(self.obj, self.key or key, val)
+            setattr(self.db, self.key or key, val)
         raise Exception(f"Writing db[{self.key}] is not allowed")
 
     def vdel(self, key):
         if self.allow_delete:
-            delattr(self.obj, self.key or key)
+            delattr(self.db, self.key or key)
         raise Exception(f"Deleting db[{self.key}] is not allowed")
 
     def __str__(self):
@@ -70,8 +70,8 @@ class ProxyAttrValue(ContextValue):
 
 class ProxyItemValue(ContextValue):
 
-    def __init__(self, obj, key=None, allow_read=True, allow_write=True, allow_delete=True):
-        self.obj = obj
+    def __init__(self, db, key=None, allow_read=True, allow_write=True, allow_delete=True):
+        self.db = db
         self.key = key
         self.allow_read = allow_read
         self.allow_write = allow_write
@@ -79,17 +79,17 @@ class ProxyItemValue(ContextValue):
 
     def vget(self, key):
         if self.allow_read:
-            return self.obj[self.key or key]
+            return self.db[self.key or key]
         raise Exception(f"Reading db[{self.key}] is not allowed")
 
     def vset(self, key, val):
         if self.allow_write:
-            self.obj[self.key or key] = val
+            self.db[self.key or key] = val
         raise Exception(f"Writing db[{self.key}] is not allowed")
 
     def vdel(self, key):
         if self.allow_delete:
-            del self.obj[self.key or key]
+            del self.db[self.key or key]
         raise Exception(f"Deleting db[{self.key}] is not allowed")
 
     def __str__(self):
@@ -105,7 +105,7 @@ class GlobalValue(ProxyItemValue):
     def __init__(self, key=None, allow_read=True, allow_write=True, allow_delete=True, stack_idx=1):
         from inspect import stack
         db = stack()[stack_idx][0].f_globals
-        super().__init__(obj=db, key=key, allow_read=allow_read, allow_write=allow_write, allow_delete=allow_delete)
+        super().__init__(db=db, key=key, allow_read=allow_read, allow_write=allow_write, allow_delete=allow_delete)
 
     def __str__(self):
         return f"{self.__class__.__name__}"
