@@ -1,6 +1,5 @@
-
-from .strf import mformat, vformat, format
 from .events import Event
+from .strf import format
 from .search import glob
 
 
@@ -26,30 +25,40 @@ def ts(template="%Y-%m-%d %H-%M-%S.%f"):
     return path
 
 
-def context(raw=None):
-    from .ctx import Data
-    return Data(raw or {})
+def context(raw=None, cval=True):
+    if raw is None:
+        from os import getcwd
+        raw = {}
+        raw["wd"] = getcwd()
+        raw["ts"] = ts()
 
-
-def context_interpreter(raw=None):
-    from .ctx import Interpreter
-    return Interpreter(raw or {})
+    from .ctx import Data, Interpreter
+    if cval:
+        return Interpreter(raw)
+    return Data(raw)
 
 
 def directory(*paths, ctx=None, formatter=None, auto_mkdir=True, auto_norm=True):
-    from .ctx import Context
-    if not isinstance(ctx, Context):
-        ctx = context_interpreter(ctx or {})
-    elif ctx.__class__.__name__.find("@C") == -1:
-        ctx = context_interpreter(ctx)
-
-    formatter = formatter or mformat
-
-    from .dirp import ContextDirp
-    return ContextDirp(*paths, ctx=ctx, formatter=formatter, auto_mkdir=auto_mkdir, auto_norm=auto_norm)
+    from .dirp import ContextDirp, context_dirp_formatter
+    return ContextDirp(
+        *paths,
+        ctx=ctx or {},
+        formatter=formatter or context_dirp_formatter,
+        auto_mkdir=auto_mkdir,
+        auto_norm=auto_norm
+    )
 
 
-def logger(dirpath="/", ctx=None, formatter=None, auto_mkdir=True, auto_norm=True):
+def pytorch_logger(dirpath="/", ctx=None, ctx_attr="ctx", formatter=None, auto_mkdir=True, auto_norm=True):
+    ctx = ctx or context(cval=True)
+    dirp = directory(
+        str(dirpath),
+        ctx=ctx,
+        formatter=formatter,
+        auto_mkdir=auto_mkdir,
+        auto_norm=auto_norm
+    )
     from .log.pytorch import PyTorchLogger
-    dirp = directory(str(dirpath), ctx=ctx, formatter=formatter, auto_mkdir=auto_mkdir, auto_norm=auto_norm)
-    return PyTorchLogger(dirp)
+    logger = PyTorchLogger(dirp)
+    setattr(logger, ctx_attr, ctx)
+    return logger

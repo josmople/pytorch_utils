@@ -18,14 +18,14 @@ class Dirp:
 
 
 def context_dirp_formatter(path, ctx):
-    return path.format_map(ctx)
+    return path.format_map(ctx or {})
 
 
 class ContextDirp(Dirp):
 
     def __init__(self, *paths, ctx=None, formatter=context_dirp_formatter, auto_mkdir=True, auto_norm=True):
         super().__init__(*paths)
-        self.ctx = ctx or {}
+        self.ctx = ctx
         self.formatter = formatter
         self.auto_mkdir = auto_mkdir
         self.auto_norm = auto_norm

@@ -1,5 +1,3 @@
-from torch.nn import Module as _Module
-
 
 def pad(padtype, padding, dim=2):
     import torch.nn.modules.padding as pads
@@ -48,14 +46,3 @@ def act(acttype, **kwargs):
                 return obj(**kwargs)
 
     raise NotImplementedError(f"No such activation type: {acttype}")
-
-
-class Lambda(_Module):
-
-    def __init__(self, fn):
-        super().__init__()
-        assert callable(fn)
-        self.fn = fn
-
-    def forward(self, *args, **kwargs):
-        return self.fn(*args, **kwargs)
