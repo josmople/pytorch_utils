@@ -1,38 +1,4 @@
-class ContextNull:
-
-    def __init__(self):
-        raise Exception("This class is not meant to be instantiated")
-
-
-class ContextValue:
-
-    def vget(self, key):
-        raise NotImplementedError()
-
-    def vset(self, key, val):
-        raise NotImplementedError()
-
-    def vdel(self, key):
-        raise NotImplementedError()
-
-
-class ContextOperation:
-
-    def __call__(self, ctx, data, params):
-        pass
-
-
-class Context:
-
-    def __call__(self, key=ContextNull, val=ContextNull):
-        pass
-
-    def __iter__(self):
-        pass
-
-    def __contains__(self, obj):
-        pass
-
+from .core import *
 
 CONTEXT_CLASSES_CACHE = {}
 
@@ -209,3 +175,39 @@ def factory(data_attr="Δ", default_key="__default__", allow_read=True, allow_wr
     ContextDerived.__qualname__ = f"Context{identifier}"
     CONTEXT_CLASSES_CACHE[identifier] = ContextDerived
     return ContextDerived
+
+
+class ContextFactoryMeta(type):
+
+    def __getitem__(self, config):
+        return factory(**config)
+
+
+class ContextBase(metaclass=ContextFactoryMeta):
+
+    def __init__(self, _):
+        raise Exception("Context has no config, do: ContextBase[dict(**kwds)](data)")
+
+
+class Data(ContextBase[dict(use_cval=False)]):
+
+    def __init__(self, data=None, default=None):
+        super().__init__(data)
+        self(val=default)
+
+
+from .vals import LambdaValue as _FN
+
+
+def _interpreter_default_fn(k):
+    raise ValueError(f"Default value is not set: Key '{k}' is missing")
+
+
+class Interpreter(ContextBase[dict(use_cval=True)]):
+
+    def __init__(self, data=None, default=_FN(_interpreter_default_fn)):
+        super().__init__(data)
+        self(val=default)
+
+
+del _FN, _interpreter_default_fn

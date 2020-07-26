@@ -1,4 +1,4 @@
-from . import values as V
+from . import vals as V
 
 vfn = V.LambdaValue
 vconst = V.ConstValue
