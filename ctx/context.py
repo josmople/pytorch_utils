@@ -35,7 +35,7 @@ def factory(data_attr="Δ", default_key="__default__", allow_read=True, allow_wr
                 obj = data[key]  # Attempt to raise an error
 
             if isinstance(obj, ContextValue):
-                return obj.vget(key)
+                return obj.vget(self, data, key)
             return obj
 
         def _write(self, key, val):
@@ -46,7 +46,7 @@ def factory(data_attr="Δ", default_key="__default__", allow_read=True, allow_wr
             if key in data:
                 obj = data[key]
                 if isinstance(obj, ContextValue):
-                    obj.vset(key, val)
+                    obj.vset(self, data, key, val)
                     return
             data[key] = val
 
@@ -58,7 +58,7 @@ def factory(data_attr="Δ", default_key="__default__", allow_read=True, allow_wr
             if key in data:
                 obj = data[key]
                 if isinstance(obj, ContextValue):
-                    obj.vdel(key)
+                    obj.vdel(self, data, key)
                     return
             del data[key]
     else:
@@ -115,8 +115,10 @@ def factory(data_attr="Δ", default_key="__default__", allow_read=True, allow_wr
 
     class ContextDerived(ContextAccessor, Context):
 
-        def __init__(self, _=None):
-            object.__setattr__(self, data_attr, _ or {})
+        def __init__(self, data=None, default=ContextNull):
+            object.__setattr__(self, data_attr, data or {})
+            if default is not ContextNull:
+                self(val=default)
 
         def __call__(self, key=ContextNull, val=ContextNull):
             key_null = key is ContextNull
@@ -171,45 +173,18 @@ def factory(data_attr="Δ", default_key="__default__", allow_read=True, allow_wr
         def __repr__(self):
             return f"{self.__class__.__name__}({data_attr}={repr(~self)})"
 
-    ContextDerived.__name__ = f"Context{identifier}"
-    ContextDerived.__qualname__ = f"Context{identifier}"
+    ContextDerived.__name__ = ContextDerived.__qualname__ = f"Context{identifier}"
     CONTEXT_CLASSES_CACHE[identifier] = ContextDerived
     return ContextDerived
 
 
-class ContextFactoryMeta(type):
-
-    def __getitem__(self, config):
-        return factory(**config)
-
-
-class ContextBase(metaclass=ContextFactoryMeta):
-
-    def __init__(self, _):
-        raise Exception("Context has no config, do: ContextBase[dict(**kwds)](data)")
-
-
-class Data(ContextBase[dict(use_cval=False)]):
+class Data(factory(use_cval=False)):
 
     def __init__(self, data=None, default=ContextNull):
-        super().__init__(data)
-        if default is not ContextNull:
-            self(val=default)
+        super().__init__(data, default)
 
 
-from .vals import LambdaValue as _FN
-
-
-def _interpreter_default_fn(k):
-    raise ValueError(f"Default value is not set: Key '{k}' is missing")
-
-
-class Interpreter(ContextBase[dict(use_cval=True)]):
+class Interpreter(factory(use_cval=True)):
 
     def __init__(self, data=None, default=ContextNull):
-        super().__init__(data)
-        if default is not ContextNull:
-            self(val=default)
-
-
-del _FN, _interpreter_default_fn
+        super().__init__(data, default)

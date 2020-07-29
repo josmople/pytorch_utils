@@ -1,7 +1,7 @@
-from ..lazyloader import LazyLoader as _LL
+from .. import _internal
 
-tfboard = _LL("tfboard", globals(), "pytorch_utils.log.tfboard")
-pytorch = _LL("pytorch", globals(), "pytorch_utils.log.pytorch")
+tfboard = _internal.LazyLoader("tfboard", globals(), "pytorch_utils.log.tfboard")
+pytorch = _internal.LazyLoader("pytorch", globals(), "pytorch_utils.log.pytorch")
 
 from . import decorator
 

@@ -6,13 +6,13 @@ class ContextNull:
 
 class ContextValue:
 
-    def vget(self, key):
+    def vget(self, ctx, data, key):
         raise NotImplementedError()
 
-    def vset(self, key, val):
+    def vset(self, ctx, data, key, val):
         raise NotImplementedError()
 
-    def vdel(self, key):
+    def vdel(self, ctx, data, key):
         raise NotImplementedError()
 
 
