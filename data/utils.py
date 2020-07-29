@@ -1,2 +1,2 @@
 from ..search import glob, fill
-from ..log import eprint
+from .. import eprint
