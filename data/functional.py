@@ -14,6 +14,9 @@ def identity_transform(x):
 
 def dmap(values, transform=None, force_iter=False):
     transform = transform or identity_transform
+    if isinstance(transform, (list, tuple)):
+        from torchvision.transforms import Compose
+        transform = Compose(transform)
 
     # If force as IterableDataset
     if force_iter:
@@ -32,6 +35,9 @@ def dmap(values, transform=None, force_iter=False):
 
 def dzip(*datasets, zip_transform=None):
     zip_transform = zip_transform or identity_transform
+    if isinstance(zip_transform, (list, tuple)):
+        from torchvision.transforms import Compose
+        zip_transform = Compose(zip_transform)
 
     # Check if there are IterableDataset, then use ZipIterableDataset
     from torch.utils.data import IterableDataset
@@ -76,7 +82,7 @@ def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader
             from PIL.Image import open as pil_loader
             img_loader = pil_loader
         except ModuleNotFoundError as e:
-            from .log import eprint
+            from .utils import eprint
             eprint("Default image loader is pillow (PIL). Module 'PIL' not found! Try 'pip install pillow' or provide custom 'img_loader'")
             raise e
 
@@ -85,7 +91,7 @@ def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader
         out = transform(img)
         if img_autoclose and callable(getattr(img, "close", None)):
             if img == out:
-                from .log import eprint
+                from .utils import eprint
                 eprint(f"Warning: Auto-closing image but image is unprocessed: {path}")
             img.close()
         return out
@@ -142,7 +148,7 @@ def cache_file(cache_dir, load_fn, save_fn, make_dir=True):
         sample_filepath = path_fn(0)
         assert isinstance(sample_filepath, str)
     except Exception as e:
-        from .log import eprint
+        from .utils import eprint
         eprint(error_msg)
         raise e
 
