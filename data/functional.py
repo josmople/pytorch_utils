@@ -75,6 +75,9 @@ def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader
     paths = fill(paths, ext=img_exts)
 
     transform = transform or identity_transform
+    if isinstance(transform, (list, tuple)):
+        from torchvision.transforms import Compose
+        transform = Compose(transform)
     assert callable(transform)
 
     if not callable(img_loader):
@@ -102,6 +105,9 @@ def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader
 
 def tensors(paths, transform=None, *, tensor_loader=None, glob_recursive=False, sort_key=None, sort_reverse=False):
     transform = transform or identity_transform
+    if isinstance(transform, (list, tuple)):
+        from torchvision.transforms import Compose
+        transform = Compose(transform)
     assert callable(transform)
 
     if not callable(tensor_loader):

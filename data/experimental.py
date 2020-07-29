@@ -15,7 +15,7 @@ def imgsequences(
     if isinstance(img_path, str):
         img_path = [img_path]
 
-    from .search import fill
+    from .utils import fill
 
     def load_sequence(p):
         paths = fill(img_paths, path=p, ext=img_exts)
