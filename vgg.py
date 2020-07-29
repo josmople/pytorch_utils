@@ -7,8 +7,8 @@ NORMALIZE_STD = [0.229, 0.224, 0.225]
 
 
 def normalize(tensor, mean=NORMALIZE_MEAN, std=NORMALIZE_STD, inplace=False):
-    from torchvision.transforms.functional import normalize
     if tensor.dim() == 3:
+        from torchvision.transforms.functional import normalize
         return normalize(tensor, mean=mean, std=std, inplace=inplace)
     if tensor.dim() == 4:
         from torch import as_tensor

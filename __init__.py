@@ -3,3 +3,5 @@ if _internal.load_lazy_submodules():
     from . import ctx, data, events, features, log, metrics, nn, noise, dirp, lazyloader, runq, search, strf, vgg
 
 from .functional import *
+
+import torch as T

@@ -6,7 +6,7 @@ def gram(x):
 
     N, C, H, W = x.size()
     x = x.view(N, C, H * W)
-    return bmm(x, x.permute(0, 2, 1)) / (C * H * W)
+    return bmm(x, x.permute(0, 2, 1)) / (H * W)
 
 
 def covariance(x, eps=1e-8):
