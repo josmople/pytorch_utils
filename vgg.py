@@ -11,11 +11,12 @@ def normalize(tensor, mean=NORMALIZE_MEAN, std=NORMALIZE_STD, inplace=False):
     if tensor.dim() == 3:
         return normalize(tensor, mean=mean, std=std, inplace=inplace)
     if tensor.dim() == 4:
+        from torch import as_tensor
         if not inplace:
             tensor = tensor.clone()
         dtype = tensor.dtype
-        mean = torch.as_tensor(mean, dtype=dtype, device=tensor.device)
-        std = torch.as_tensor(std, dtype=dtype, device=tensor.device)
+        mean = as_tensor(mean, dtype=dtype, device=tensor.device)
+        std = as_tensor(std, dtype=dtype, device=tensor.device)
         tensor.sub_(mean[None, :, None, None]).div_(std[None, :, None, None])
         return tensor
     raise NotImplementedError("Only accepts 3D or 4D tensor")
