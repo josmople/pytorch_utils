@@ -16,6 +16,8 @@ def covariance(x, eps=1e-8):
 
     B, C, H, W = x.size()
     x = x.view(B, C, H * W)
-    x.sub_(x.mean(dim=2, keepdim=True))
-    x.div_(x.std(dim=2, keepdim=True) + eps)
+    x_mean = x.mean(dim=2, keepdim=True)
+    x_std = x.std(dim=2, keepdim=True)
+    x = (x - x_mean) / (x_std + eps)
+    del x_mean, x_std
     return bmm(x, x.permute(0, 2, 1)) / (H * W)
