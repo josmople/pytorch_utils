@@ -129,6 +129,17 @@ class VGGExtractor(_Module):
     def layernames(self):
         return list(self.mapping.keys())
 
+    @property
+    def layernames_valid(self):
+        return self.layernames[:len(self.model)]
+
+    @property
+    def fetchlist(self):
+        out = [-1, *range(len(self.model)), *self.layernames_valid]
+        if self.normalize is not None:
+            out.append(None)
+        return out
+
     def forward(self, x, fetches=None):
         if fetches is None:
             return self.model(x)
