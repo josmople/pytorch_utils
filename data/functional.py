@@ -51,9 +51,32 @@ def dzip(*datasets, zip_transform=None):
     return ZipDataset(datasets, zip_transform)
 
 
-def daugment(dataset, aug_fn):
-    from .model import AugDataset
-    return AugDataset(dataset, aug_fn)
+def dcombine(*datasets, comb_transform=None):
+    comb_transform = comb_transform or identity_transform
+    if isinstance(comb_transform, (list, tuple)):
+        from torchvision.transforms import Compose
+        comb_transform = Compose(comb_transform)
+
+    # Check if there are IterableDataset, then use CombineIterableDataset
+    from torch.utils.data import IterableDataset
+    if any([isinstance(ds, IterableDataset) for ds in datasets]):
+
+        from .model import CombineIterableDataset
+        return CombineIterableDataset(datasets, comb_transform)
+
+    # Otherwise, use ZipDataset
+    from .model import CombineDataset
+    return CombineDataset(datasets, comb_transform)
+
+
+def daugment(dataset, aug_fn=None):
+    aug_fn = aug_fn or identity_transform
+    if isinstance(aug_fn, (list, tuple)):
+        from torchvision.transforms import Compose
+        aug_fn = Compose(aug_fn)
+
+    from .model import AugmentedDataset
+    return AugmentedDataset(dataset, aug_fn)
 
 
 def dcache(dataset, cache):

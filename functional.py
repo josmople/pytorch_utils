@@ -3,6 +3,10 @@ from .strf import format
 from .search import glob
 
 
+def error(e):
+    raise e
+
+
 def eprint(*args, **kwds):
     from sys import stderr
     print(*args, file=stderr, **kwds)

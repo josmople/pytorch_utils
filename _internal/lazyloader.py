@@ -43,3 +43,15 @@ class LazyLoader(types.ModuleType):
     def __dir__(self):
         module = self._load()
         return dir(module)
+
+
+def lazyload(localname, name=None, module_globals=None):
+    if name is None:
+        name = localname
+    if module_globals is None:
+        from sys import _getframe
+        module_globals = _getframe(1).f_globals
+
+    ll = LazyLoader(localname, module_globals, name)
+    module_globals[localname] = ll
+    return False

@@ -39,14 +39,14 @@ class ValueIterableDataset(_IterableDataset):
             yield transform(v)
 
     def __iter__(self):
-        return self.__class__.generator(self.values, self.transform)
+        return self.generator(self.values, self.transform)
 
 
 class ZipDataset(_Dataset):
 
     __slots__ = ["datasets", "zip_transform"]
 
-    def __init__(self, datasets, zip_transform=None):
+    def __init__(self, datasets, zip_transform):
         assert len(datasets) > 0
 
         assert all([callable(getattr(ds, "__len__", None)) for ds in datasets])
@@ -70,7 +70,7 @@ class ZipDataset(_Dataset):
         return self.zip_transform(tuple(array))
 
 
-class ZipIterableDataset(_Dataset):
+class ZipIterableDataset(_IterableDataset):
 
     __slots__ = ["datasets", "zip_transform"]
 
@@ -91,10 +91,82 @@ class ZipIterableDataset(_Dataset):
             yield zip_transform(vals)
 
     def __iter__(self):
-        return self.__class__.generator(self.datasets, self.zip_transform)
+        return self.generator(self.datasets, self.zip_transform)
 
 
-class AugDataset(_IterableDataset):
+class CombineDataset(_Dataset):
+
+    __slots__ = ["datasets", "comb_transform"]
+
+    def __init__(self, datasets, comb_transform):
+        assert len(datasets) > 0
+
+        assert all([callable(getattr(ds, "__len__", None)) for ds in datasets])
+        assert all([callable(getattr(ds, "__getitem__", None)) for ds in datasets])
+
+        assert callable(comb_transform)
+
+        self.datasets = datasets
+        self.comb_transform = comb_transform
+
+    @staticmethod
+    def indexer(i, sizes):
+        prod = 1
+        for s in sizes:
+            prod *= s
+
+        out = []
+        for s in sizes:
+            prod //= s
+            q = i // prod
+            i = i % prod
+            out.append(q)
+
+        return tuple(out)
+
+    @property
+    def sizes(self):
+        return tuple([len(ds) for ds in self.datasets])
+
+    def __len__(self):
+        from functools import reduce
+        from operator import mul
+        return reduce(mul, self.sizes, 1)
+
+    def __getitem__(self, idx):
+        idxs = self.indexer(idx, self.sizes)
+        array = []
+        for i, ds in zip(idxs, self.datasets):
+            array.append(ds[i])
+        return self.comb_transform(tuple(array))
+
+
+class CombineIterableDataset(_IterableDataset):
+
+    __slots__ = ["datasets", "comb_transform"]
+
+    def __init__(self, datasets, comb_transform):
+        assert len(datasets) > 0
+
+        from collections import Iterable
+        assert all([isinstance(ds, Iterable) for ds in datasets])
+
+        assert callable(comb_transform)
+
+        self.datasets = datasets
+        self.comb_transform = comb_transform
+
+    @staticmethod
+    def generator(datasets, comb_transform):
+        from itertools import product
+        for vals in product(*datasets):
+            yield comb_transform(vals)
+
+    def __iter__(self):
+        return self.generator(self.datasets, self.comb_transform)
+
+
+class AugmentedDataset(_IterableDataset):
 
     __slots__ = ["values", "augment"]
 
@@ -113,7 +185,7 @@ class AugDataset(_IterableDataset):
                 yield o
 
     def __iter__(self):
-        return self.__class__.generator(self.values, self.augment)
+        return self.generator(self.values, self.augment)
 
 
 class CachedDataset(_Dataset):

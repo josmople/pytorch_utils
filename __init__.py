@@ -4,4 +4,5 @@ if _internal.load_lazy_submodules():
 
 from .functional import *
 
-import torch as T
+if _internal.lazyload("T", "torch"):
+    import torch as T
