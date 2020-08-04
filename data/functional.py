@@ -97,7 +97,8 @@ def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader
     from .utils import fill
     paths = fill(paths, ext=img_exts)
 
-    transform = transform or identity_transform
+    from torchvision.transforms.functional import to_tensor
+    transform = transform or to_tensor
     if isinstance(transform, (list, tuple)):
         from torchvision.transforms import Compose
         transform = Compose(transform)
