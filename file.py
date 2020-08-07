@@ -13,9 +13,7 @@ def read_lines(path, keepends=False, **kwds):
 
 
 def write_lines(path, lines, linesep=None, **kwds):
-    if linesep is None:
-        from os import linesep
-    return write_text(path, linesep.join(lines), **kwds)
+    return write_text(path, (linesep or "\n").join(lines), **kwds)
 
 
 def file_exists(path):
