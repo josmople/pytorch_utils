@@ -88,12 +88,15 @@ def dcache(dataset, cache):
 # Dataset Constructors
 #####################################################
 
-def files(paths, transform=None, *, glob_recursive=False, sort_key=None, sort_reverse=False):
+def files(paths, transform=None, *, use_glob=True, glob_recursive=False, sort_key=None, sort_reverse=False):
     from .utils import glob
-    return dmap(glob(paths, recursive=glob_recursive, key=sort_key, reverse=sort_reverse, unique=True), transform)
+    if use_glob:
+        return dmap(glob(paths, recursive=glob_recursive, key=sort_key, reverse=sort_reverse, unique=True), transform)
+    else:
+        return dmap(paths, transform)
 
 
-def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader=None, img_autoclose=True, glob_recursive=False, sort_key=None, sort_reverse=False):
+def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader=None, img_autoclose=True, use_glob=True, glob_recursive=False, sort_key=None, sort_reverse=False):
     from .utils import fill
     paths = fill(paths, ext=img_exts)
 
@@ -124,10 +127,10 @@ def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader
         return out
 
     from .utils import glob
-    return files(paths, img_transform, glob_recursive=glob_recursive, sort_key=sort_key, sort_reverse=sort_reverse)
+    return files(paths, img_transform, use_glob=use_glob, glob_recursive=glob_recursive, sort_key=sort_key, sort_reverse=sort_reverse)
 
 
-def tensors(paths, transform=None, *, tensor_loader=None, glob_recursive=False, sort_key=None, sort_reverse=False):
+def tensors(paths, transform=None, *, tensor_loader=None, use_glob=True, glob_recursive=False, sort_key=None, sort_reverse=False):
     transform = transform or identity_transform
     if isinstance(transform, (list, tuple)):
         from torchvision.transforms import Compose
@@ -148,7 +151,7 @@ def tensors(paths, transform=None, *, tensor_loader=None, glob_recursive=False, 
         return transform(tensor)
 
     from .utils import glob
-    return files(paths, tensor_transform, glob_recursive=glob_recursive, sort_key=sort_key, sort_reverse=sort_reverse)
+    return files(paths, tensor_transform, use_glob=use_glob, glob_recursive=glob_recursive, sort_key=sort_key, sort_reverse=sort_reverse)
 
 
 #####################################################
