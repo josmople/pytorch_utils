@@ -139,8 +139,19 @@ def clone(srcdir, destdir, copy_list, symlink_list):
         symlink(abspath(src), abspath(dest))
 
 
-def run(command, srcdir=".", destdir=".", copy_list=None, symlink_list=None, lockdir="lock/", **kwds):
+def run(command, srcdir=".", destdir=".", copy_list=None, symlink_list=None, lockdir="lock/", template="cd {destdir} && {command}", **kwds):
     from os import system
     clone(srcdir, destdir, copy_list or [], symlink_list or [])
+
+    command_format = template if callable(template) else (lambda **args: str(template).format(**args))
+
     with Lock(lockdir, **kwds) as l:
-        system(f"cd {destdir} && {command}")
+        system(command_format(
+            command=command,
+            srcdir=srcdir,
+            destdir=destdir,
+            copy_list=copy_list,
+            symlink_list=symlink_list,
+            template=template,
+            **kwds
+        ))
