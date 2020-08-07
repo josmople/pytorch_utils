@@ -2,7 +2,6 @@
 
 class Lock:
 
-    # TODO Order
     def __init__(self, dirpath, key=None, order=None, queuefile="queue.txt", headfile="head.txt", interval=2):
         from os import makedirs
         makedirs(dirpath, exist_ok=True)
@@ -11,6 +10,7 @@ class Lock:
         self.queuefile = join(dirpath, queuefile)
         self.headfile = join(dirpath, headfile)
         self.interval = interval
+        self.order = order
 
         if key is None:
             from uuid import uuid4
@@ -20,14 +20,11 @@ class Lock:
         from atexit import register
         register(self.close)
 
-        # TODO Possible Error
-        self.queue = list(self.queue) + [self.key]
-
-        if self.head is None:
-            self.head = self.key
+        self._register(key, order)
+        self._check(key)
 
         from time import sleep
-        while self.head != self.key:
+        while self.head != key:
             sleep(self.interval)
 
     def __enter__(self):
@@ -36,74 +33,67 @@ class Lock:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()
 
-    def close(self):
-        self.queue = list(filter(lambda v: v != self.key, self.queue))
+    def _write(self, file, content):
+        file.seek(0)
+        file.write(content)
+        file.truncate()
 
-        if self.head == self.key:
-            self.head = self.queue[0] if len(self.queue) > 0 else ""
+    def _initfile(self, path):
+        from os.path import exists, isdir
+        if not exists(path) or isdir(path):
+            open(path, "x").close()
+
+    def close(self):
+        with open(self.queuefile, "r+") as fq:
+            lines = map(str.strip, fq.readlines())
+            lines = list(filter(lambda v: v != self.key, lines))
+
+            content = str.join("\n", lines)
+            self._write(fq, content)
+
+            with open(self.headfile, "r+") as fh:
+                head = fh.read().strip()
+                if head == self.key:
+                    head = lines[0] if len(lines) > 0 else ""
+                    self._write(fh, head)
 
         from atexit import unregister
         unregister(self.close)
 
-    def _register(self, order):
-        from os.path import exists, isdir
-        if not exists(self.queuefile) or isdir(self.queuefile):
-            open(self.queuefile, "x").close()
+    def _register(self, key, order):
+        self._initfile(self.queuefile)
 
         with open(self.queuefile, "r+") as f:
-            lines = f.readlines()
-            for i, line in enumerate(lines):
-                lines[i] = line.strip()
-            return tuple(lines)
+            lines = list(map(str.strip, f.readlines()))
+            assert key not in lines, "The key is already registered"
+
+            if order is None:
+                lines.append(key)
+            else:
+                lines.insert(order, key)
+
+            content = str.join("\n", lines)
+            self._write(f, content)
+
+    def _check(self, key):
+        self._initfile(self.headfile)
+
+        with open(self.headfile, "r+") as fh:
+            head = fh.read().strip()
+            if head is "":
+                self._write(fh, key)
 
     @property
     def queue(self):
-        from os.path import exists, isdir
-        if not exists(self.queuefile) or isdir(self.queuefile):
-            open(self.queuefile, "x").close()
-
-        with open(self.queuefile, "r") as f:
-            lines = f.readlines()
-            for i, line in enumerate(lines):
-                lines[i] = line.strip()
-            return tuple(lines)
-
-    @queue.setter
-    def queue(self, keys):
-        with open(self.queuefile, "w+") as f:
-            lines = []
-            for v in keys:
-                lines.append(str(v) + "\n")
-            f.writelines(lines)
+        with open(self.queuefile, "r") as fq:
+            vals = map(str.strip, fq.readlines())
+            return tuple(vals)
 
     @property
     def head(self):
-        from os.path import exists, isdir
-        if not exists(self.headfile) or isdir(self.headfile):
-            open(self.headfile, "x").close()
-
-        with open(self.headfile, "r") as f:
-            val = f.read()
+        with open(self.headfile, "r") as fh:
+            val = fh.read()
             return None if val is "" else val
-
-    @head.setter
-    def head(self, key):
-        with open(self.headfile, "w+") as f:
-            f.write(key)
-
-
-def relative(fn):
-
-    from functools import wraps
-    from os.path import relpath, join
-
-    def new_fn(srcdir, destdir, paths):
-        for src in paths:
-            path = relpath(srcdir, src)
-            dest = join(destdir, path)
-            fn(src, dest)
-
-    return new_fn
 
 
 def copy(src, dest):
@@ -149,9 +139,8 @@ def clone(srcdir, destdir, copy_list, symlink_list):
         symlink(abspath(src), abspath(dest))
 
 
-def run(_, *args, **kwds):
+def run(command, srcdir=".", destdir=".", copy_list=None, symlink_list=None, lockdir="lock/", **kwds):
     from os import system
-    return system(_.format(*args, **kwds))
-
-
-lock = Lock
+    clone(srcdir, destdir, copy_list or [], symlink_list or [])
+    with Lock(lockdir, **kwds) as l:
+        system(f"cd {destdir} && {command}")
