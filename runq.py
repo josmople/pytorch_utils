@@ -1,5 +1,97 @@
 # Running Queue
 
+class Lock:
+
+    # TODO Order
+    def __init__(self, dirpath, key=None, order=None, queuefile="queue.txt", headfile="head.txt", interval=2):
+        from os import makedirs
+        makedirs(dirpath, exist_ok=True)
+
+        from os.path import join
+        self.queuefile = join(dirpath, queuefile)
+        self.headfile = join(dirpath, headfile)
+        self.interval = interval
+
+        if key is None:
+            from uuid import uuid4
+            key = uuid4()
+        self.key = key = str(key)
+
+        from atexit import register
+        register(self.close)
+
+        # TODO Possible Error
+        self.queue = list(self.queue) + [self.key]
+
+        if self.head is None:
+            self.head = self.key
+
+        from time import sleep
+        while self.head != self.key:
+            sleep(self.interval)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.close()
+
+    def close(self):
+        self.queue = list(filter(lambda v: v != self.key, self.queue))
+
+        if self.head == self.key:
+            self.head = self.queue[0] if len(self.queue) > 0 else ""
+
+        from atexit import unregister
+        unregister(self.close)
+
+    def _register(self, order):
+        from os.path import exists, isdir
+        if not exists(self.queuefile) or isdir(self.queuefile):
+            open(self.queuefile, "x").close()
+
+        with open(self.queuefile, "r+") as f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                lines[i] = line.strip()
+            return tuple(lines)
+
+    @property
+    def queue(self):
+        from os.path import exists, isdir
+        if not exists(self.queuefile) or isdir(self.queuefile):
+            open(self.queuefile, "x").close()
+
+        with open(self.queuefile, "r") as f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                lines[i] = line.strip()
+            return tuple(lines)
+
+    @queue.setter
+    def queue(self, keys):
+        with open(self.queuefile, "w+") as f:
+            lines = []
+            for v in keys:
+                lines.append(str(v) + "\n")
+            f.writelines(lines)
+
+    @property
+    def head(self):
+        from os.path import exists, isdir
+        if not exists(self.headfile) or isdir(self.headfile):
+            open(self.headfile, "x").close()
+
+        with open(self.headfile, "r") as f:
+            val = f.read()
+            return None if val is "" else val
+
+    @head.setter
+    def head(self, key):
+        with open(self.headfile, "w+") as f:
+            f.write(key)
+
+
 def relative(fn):
 
     from functools import wraps
@@ -38,7 +130,7 @@ def symlink(src, dest):
     return symlink(src, dest)
 
 
-def backup(srcdir, destdir, copy_list, symlink_list):
+def clone(srcdir, destdir, copy_list, symlink_list):
     from os import makedirs
     from os.path import relpath, join, abspath
 
@@ -57,138 +149,9 @@ def backup(srcdir, destdir, copy_list, symlink_list):
         symlink(abspath(src), abspath(dest))
 
 
-class FileBound:
-
-    def __init__(self, fpath):
-        self.fpath = fpath
-
-        try:
-            with open(path, 'x'):
-                pass
-        except FileExistsError:
-            pass
-
-    def read(self):
-        with open(self.fpath, "r") as f:
-            return f.read()
-
-    def write(self, text):
-        with open(self.fpath, "w+") as f:
-            if isinstance(text, (list, tuple)):
-                return f.writelines(text)
-            return f.write(text)
-
-    def __call__(self, text=None):
-        if text is None:
-            return self.read()
-        return self.write(text)
-
-
-class Head:
-
-    def __init__(self, path):
-        self.fpath = path
-
-        try:
-            open(path, 'x')
-        except FileExistsError:
-            pass
-
-    def __call__(self, text=None):
-        if text is None:
-            with open(self.fpath, "r") as f:
-                return f.read()
-
-        with open(self.fpath, "w+") as f:
-            f.write(text)
-
-    def __str__(self):
-        return self()
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}(fpath={self.fpath})"
-
-
-class Strip:
-
-    def __init__(self, path):
-        self.fpath = path
-
-        try:
-            open(path, 'x')
-        except FileExistsError:
-            pass
-
-    def __call__(self):
-        from uuid import uuid4
-
-        with open(self.fpath, "r") as f:
-            lines = f.readlines()
-            now = None if len(lines) == 0 else lines[-1].strip()
-
-        with open(self.fpath, "a+") as f:
-            nxt = str(uuid4())
-            f.write(nxt + "\n")
-            return now, nxt
-
-    def __str__(self):
-        return str(f.readlines())
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}(fpath={self.fpath})"
-
-
-def block(mark, target, interval=10):
-    if target is None:
-        return
-    if isinstance(mark, str):
-        mark = Head(mark)
-    from time import sleep
-    while str(mark) != str(target):
-        sleep(interval)
-
-
-def write(mark, text=None):
-    if text is None:
-        try:
-            filepath = mark.fpath if isinstance(mark, Head) else str(mark)
-            open(filepath, 'x')
-        except FileExistsError:
-            pass
-
-    if isinstance(mark, str):
-        mark = Head(mark)
-    mark(text)
-
-
-def run(src, dest, cmd, files, links, marker, start_code, end_code, interval=10):
-    from atexit import register
+def run(_, *args, **kwds):
     from os import system
-
-    if not isinstance(marker, Head):
-        marker = Head(str(marker))
-
-    register(lambda: write(marker, end_code))
-
-    block(marker, start_code, interval)
-    backup(src, dest, files, links)
-    system(f"cd {dest} && echo %cd% && {cmd}")
-    write(marker, end_code)
+    return system(_.format(*args, **kwds))
 
 
-def sequence(filepath):
-    from uuid import uuid4
-
-    try:
-        open(filepath, 'x')
-    except FileExistsError:
-        pass
-
-    with open(filepath, "r") as f:
-        lines = f.readlines()
-        now = None if len(lines) == 0 else lines[-1].strip()
-
-    with open(filepath, "a+") as f:
-        nxt = str(uuid4())
-        f.write(nxt + "\n")
-        return now, nxt
+lock = Lock

@@ -210,6 +210,45 @@ def cache_tensor(cache_dir, make_dir=True):
     return cache_file(cache_dir, load_fn=load_pytorch_tensor, save_fn=save_pytorch_tensor, make_dir=make_dir)
 
 
+def cache_text(cache_dir, array=False, make_dir=True):
+    from os import linesep
+
+    if array:
+        def load_text(path):
+            with open(path, "r") as f:
+                lines = f.readlines()
+            return list(filter(lambda x: x.strip(linesep), lines))
+
+        def save_text(path, lines):
+            text = str.join(linesep, lines)
+            with open(path, "w+") as f:
+                f.write(text)
+    else:
+        def load_text(path):
+            with open(path, "r") as f:
+                return f.read()
+
+        def save_text(path, text):
+            with open(path, "w+") as f:
+                f.write(text)
+
+    return cache_file(cache_dir, load_fn=load_text, save_fn=save_text, make_dir=make_dir)
+
+
+def cache_json(cache_dir, load_kwds=None, save_kwds=None, make_dir=True):
+    from json import load, dump
+
+    def load_json(path):
+        with open(path, "r") as f:
+            return load(f, **(load_kwds or {}))
+
+    def save_json(path, obj):
+        with open(path, "w+") as f:
+            return dump(obj, **(save_kwds or {}))
+
+    return cache_file(cache_dir, load_fn=load_json, save_fn=save_json, make_dir=make_dir)
+
+
 #####################################################
 # Cache Dataset Macros
 #####################################################
@@ -221,4 +260,14 @@ def dcache_file(dataset, cache_dir, load_fn, save_fn, make_dir=True):
 
 def dcache_tensor(dataset, cache_dir, make_dir=True):
     cache = cache_tensor(cache_dir, make_dir=make_dir)
+    return dcache(dataset, cache)
+
+
+def dcache_text(dataset, cache_dir, array=False, make_dir=True):
+    cache = cache_text(cache_dir, array=array, make_dir=make_dir)
+    return dcache(dataset, cache)
+
+
+def dcache_json(dataset, cache_dir, load_kwds=None, save_kwds=None, make_dir=True):
+    cache = cache_json(cache_dir, load_kwds=load_kwds, save_kwds=save_kwds, make_dir=make_dir)
     return dcache(dataset, cache)
