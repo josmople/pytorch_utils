@@ -1,7 +1,7 @@
-from torch.utils.data import Dataset as _Dataset, IterableDataset as _IterableDataset
+from torch.utils.data import Dataset, IterableDataset
 
 
-class ValueDataset(_Dataset):
+class ValueDataset(Dataset):
 
     __slots__ = ["values", "transform"]
 
@@ -21,7 +21,7 @@ class ValueDataset(_Dataset):
         return self.transform(value)
 
 
-class ValueIterableDataset(_IterableDataset):
+class ValueIterableDataset(IterableDataset):
 
     __slots__ = ["values", "transform"]
 
@@ -42,7 +42,7 @@ class ValueIterableDataset(_IterableDataset):
         return self.generator(self.values, self.transform)
 
 
-class ZipDataset(_Dataset):
+class ZipDataset(Dataset):
 
     __slots__ = ["datasets", "zip_transform"]
 
@@ -70,7 +70,7 @@ class ZipDataset(_Dataset):
         return self.zip_transform(tuple(array))
 
 
-class ZipIterableDataset(_IterableDataset):
+class ZipIterableDataset(IterableDataset):
 
     __slots__ = ["datasets", "zip_transform"]
 
@@ -94,7 +94,7 @@ class ZipIterableDataset(_IterableDataset):
         return self.generator(self.datasets, self.zip_transform)
 
 
-class CombineDataset(_Dataset):
+class CombineDataset(Dataset):
 
     __slots__ = ["datasets", "comb_transform"]
 
@@ -141,7 +141,7 @@ class CombineDataset(_Dataset):
         return self.comb_transform(tuple(array))
 
 
-class CombineIterableDataset(_IterableDataset):
+class CombineIterableDataset(IterableDataset):
 
     __slots__ = ["datasets", "comb_transform"]
 
@@ -166,7 +166,7 @@ class CombineIterableDataset(_IterableDataset):
         return self.generator(self.datasets, self.comb_transform)
 
 
-class AugmentedDataset(_IterableDataset):
+class AugmentedDataset(IterableDataset):
 
     __slots__ = ["values", "augment"]
 
@@ -188,7 +188,7 @@ class AugmentedDataset(_IterableDataset):
         return self.generator(self.values, self.augment)
 
 
-class CachedDataset(_Dataset):
+class CachedDataset(Dataset):
 
     __slots__ = ["dataset", "cache"]
 
@@ -210,6 +210,3 @@ class CachedDataset(_Dataset):
         if idx not in self.cache:
             self.cache[idx] = self.dataset[idx]
         return self.cache[idx]
-
-
-del _Dataset, _IterableDataset
