@@ -168,7 +168,7 @@ class VGGExtractor(_Module):
         if None in idxs:
             outputs[None] = y
 
-        last_idxs = max(idxs)
+        last_idx = max(idxs)
 
         for idx, layer in enumerate(self.model):
             y = layer(y)
@@ -176,7 +176,7 @@ class VGGExtractor(_Module):
             if idx in idxs:
                 outputs[idx] = y
 
-            if idx > last_idxs:
+            if idx >= last_idx:
                 break
 
         return [outputs[idx] for idx in idxs]
