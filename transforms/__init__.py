@@ -35,7 +35,7 @@ class ReadImage(object):
     """
 
     def __init__(self):
-        self.device = device
+        pass
 
     def __call__(self, path):
         """
@@ -44,6 +44,27 @@ class ReadImage(object):
 
         Returns:
             PIL Image: Image.
+        """
+        return functional.read_image(path)
+
+    def __repr__(self):
+        return self.__class__.__name__ + '()'
+
+
+class ReadImageTensor(object):
+    """Reads a path:str to PIL.Image to Pytorch Tensor
+    """
+
+    def __init__(self):
+        pass
+
+    def __call__(self, path):
+        """
+        Args:
+            path (str): File path of image
+
+        Returns:
+            Pytorch Tensor: Tensor format of the image.
         """
         return functional.read_image(path)
 

@@ -11,3 +11,7 @@ def to_cuda(tensor, device=None):
 def read_image(path):
     from PIL import Image
     return Image.open(path)
+
+
+def read_image_tensor(path):
+    return to_tensor(read_image(path))
