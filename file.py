@@ -8,17 +8,14 @@ def write_text(path, text, **kwds):
         return f.write(text)
 
 
-def read_lines(path, **kwds):
-    from os import linesep
-    with open(path, "r", **kwds) as f:
-        return list(map(lambda s: s.strip(linesep), f.readlines()))
+def read_lines(path, keepends=False, **kwds):
+    return read_text(path, **kwds).splitlines(keepends)
 
 
-def write_lines(path, lines, **kwds):
-    from os import linesep
-    text = str.join(linesep, lines)
-    with open(path, "w+", **kwds) as f:
-        return f.write(text)
+def write_lines(path, lines, linesep=None, **kwds):
+    if linesep is None:
+        from os import linesep
+    return write_text(path, linesep.join(lines), **kwds)
 
 
 def file_exists(path):
