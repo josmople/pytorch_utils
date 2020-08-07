@@ -1,4 +1,6 @@
 from torchvision.transforms import *
+del functional
+
 from . import functional
 
 
