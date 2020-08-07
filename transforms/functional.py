@@ -6,3 +6,8 @@ def to_cuda(tensor, device=None):
         return tensor.cuda()
     else:
         return tensor.to(device=device)
+
+
+def read_image(path):
+    from PIL import Image
+    return Image.open(path)

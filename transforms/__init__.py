@@ -26,3 +26,24 @@ class ToCuda(object):
 
     def __repr__(self):
         return self.__class__.__name__ + '(device={0})'.format(self.device)
+
+
+class ReadImage(object):
+    """Reads a path:str to PIL.Image
+    """
+
+    def __init__(self):
+        self.device = device
+
+    def __call__(self, path):
+        """
+        Args:
+            path (str): File path of image
+
+        Returns:
+            PIL Image: Image.
+        """
+        return functional.read_image(path)
+
+    def __repr__(self):
+        return self.__class__.__name__ + '()'
