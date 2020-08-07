@@ -83,12 +83,12 @@ class VGGExtractor(_Module):
         str values in fetches refers to layer name (see self.layernames or mapping)
 
         Special indexes
-        -1 -> corresponds to model input
-        None -> corresponds to post-normalization, if there is no normalization has similar output to -1
+        -1 -> corresponds to input post-normalization, if no normalization has similar value with '-2'
+        -2 -> corresponds to raw input
         """
         idxs = []
         for idx in fetches:
-            if isinstance(idx, int) or idx is None:
+            if isinstance(idx, int):
                 idxs.append(idx)
             elif isinstance(idx, str):
                 try:
@@ -135,9 +135,9 @@ class VGGExtractor(_Module):
 
     @property
     def fetchlist(self):
-        out = [-1, *range(len(self.model)), *self.layernames_valid]
+        out = [-2, *range(len(self.model)), *self.layernames_valid]
         if self.normalize is not None:
-            out.append(None)
+            out.insert(0, -1)
         return out
 
     def forward(self, x, fetches=None):
@@ -160,13 +160,13 @@ class VGGExtractor(_Module):
         outputs = {}
 
         y = x
-        if -1 in idxs:
-            outputs[-1] = y
+        if -2 in idxs:
+            outputs[-2] = y
 
         if self.normalize is not None:
             y = self.normalize(y)
-        if None in idxs:
-            outputs[None] = y
+        if -1 in idxs:
+            outputs[-1] = y
 
         last_idx = max(idxs)
 
