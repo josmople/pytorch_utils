@@ -66,7 +66,7 @@ class ReadImageTensor(object):
         Returns:
             Pytorch Tensor: Tensor format of the image.
         """
-        return functional.read_image(path)
+        return functional.read_image_tensor(path)
 
     def __repr__(self):
         return self.__class__.__name__ + '()'
