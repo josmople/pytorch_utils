@@ -68,6 +68,11 @@ class SSIM(torch.nn.Module):
 
 
 def compute_ssim(img1, img2, window_size=11, size_average=True):
+    if img1.dim() == 3:
+        img1 = img1.unsqueeze(0)
+    if img2.dim() == 3:
+        img2 = img2.unsqueeze(0)
+
     (_, channel, _, _) = img1.size()
     window = create_window(window_size, channel)
 
