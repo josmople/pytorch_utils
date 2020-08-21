@@ -1,4 +1,4 @@
-def load_lazy_submodules(root_modname=None, include_submodules=None, exclude_submodules=None, stack_idx=1):
+def lazyload_submodules(root_modname=None, include_submodules=None, exclude_submodules=None, stack_idx=1):
     """
     Searches all possible submodules and makes them lazily-loaded
     root_modname - defaults to the dirname
