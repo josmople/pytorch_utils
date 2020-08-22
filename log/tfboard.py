@@ -6,11 +6,11 @@ class TfScalarLogger:
 
     def __init__(self, directory):
 
-        if isinstance(rootdir, str):
+        if isinstance(directory, str):
             self.directory = directory
             self.writer = tf.summary.create_file_writer(directory)
 
-        if isinstance(rootdir, tf.summary.SummaryWriter):
+        if isinstance(directory, tf.summary.SummaryWriter):
             self.directory = None
             self.writer = directory
 
