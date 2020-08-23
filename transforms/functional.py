@@ -16,3 +16,17 @@ def read_image(path):
 
 def read_image_tensor(path):
     return to_tensor(read_image(path))
+
+
+def divisible_crop(tensor, divisor):
+    if isinstance(divisor, int):
+        divh = divisor
+        divw = divisor
+    else:
+        divh = divisor[0]
+        divw = divisor[1]
+
+    _, h, w = tensor.size()
+    xtra_h, xtra_w = h % divh, w % divw
+    new_h, new_w = h - xtra_h, w - xtra_w
+    return tensor[:, :new_h, :new_w]

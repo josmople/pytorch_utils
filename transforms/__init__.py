@@ -131,3 +131,24 @@ class Squeeze(object):
 
     def __repr__(self):
         return self.__class__.__name__ + f'(dim={self.dim})'
+
+
+class DivisibleCrop(object):
+    """Crops the image so that its length or width is divisible by the provided divisor.
+    """
+
+    def __init__(self, divisor):
+        self.divisor = divisor
+
+    def __call__(self, tensor):
+        """
+        Args:
+            tensor (torch.Tensor): Image tensor to be cropped.
+
+        Returns:
+            Pytorch Tensor: Cropped tensor divisible by 'divisor'.
+        """
+        return functional.divisible_crop(tensor, self.divisor)
+
+    def __repr__(self):
+        return self.__class__.__name__ + f'(divisor={self.divisor})'
