@@ -91,7 +91,7 @@ class Unsqueeze(object):
         from torch import unsqueeze
 
         if isinstance(self.dim, int):
-            return unsqueeze(tensor, dim)
+            return unsqueeze(tensor, self.dim)
 
         for dim in self.dim:
             tensor = unsqueeze(tensor, dim)
@@ -123,7 +123,7 @@ class Squeeze(object):
             return squeeze(tensor)
 
         if isinstance(self.dim, int):
-            return squeeze(tensor, dim)
+            return squeeze(tensor, self.dim)
 
         for dim in self.dim:
             tensor = squeeze(tensor, dim)
