@@ -152,3 +152,15 @@ class DivisibleCrop(object):
 
     def __repr__(self):
         return self.__class__.__name__ + f'(divisor={self.divisor})'
+
+
+class Debug(object):
+
+    def __init__(self, val_fn=lambda x: x, log_fn=print):
+        self.val_fn = val_fn
+        self.log_fn = log_fn
+
+    def __call__(self, obj):
+        if callable(self.val_fn) and callable(self.log_fn):
+            self.log_fn(self.val_fn(obj))
+        return obj
