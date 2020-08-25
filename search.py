@@ -29,10 +29,10 @@ def default_natsort_keygen(key=None):
         raise e
 
 
-def fill(_, *args, **kwds):
-    if isinstance(_, str):
-        _ = [_]
-    paths = _
+def fill(*args, **kwds):
+    paths, *args = args
+    if isinstance(paths, str):
+        paths = [paths]
 
     keys = []
     vals = []
