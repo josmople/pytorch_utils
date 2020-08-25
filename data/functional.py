@@ -12,7 +12,14 @@ def identity_transform(x):
 # Dataset Operations
 #####################################################
 
-def dpipe(dataset, operators):
+def dpipe(dataset=None, operators=[]):
+    if dataset is None:
+        from functools import partial
+        return partial(dpipe, operators=operators)
+
+    if callable(operators):
+        return operators(dataset)
+
     for operator in operators:
         dataset = operator(dataset)
     return dataset
