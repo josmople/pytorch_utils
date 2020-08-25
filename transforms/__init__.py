@@ -112,7 +112,7 @@ class Squeeze(object):
     def __call__(self, tensor):
         """
         Args:
-            tensor (torch.Tensor): Tensor to be unsqueezed
+            tensor (torch.Tensor): Tensor to be squeezed
 
         Returns:
             Pytorch Tensor: Modified view of the tensor.
