@@ -12,7 +12,17 @@ def identity_transform(x):
 # Dataset Operations
 #####################################################
 
-def dmap(values, transform=None, force_iter=False):
+def dpipe(dataset, operators):
+    for operator in operators:
+        dataset = operator(dataset)
+    return dataset
+
+
+def dmap(values=None, transform=None, force_iter=False):
+    if values is None:
+        from functools import partial
+        return partial(dmap, transform=transform, force_iter=force_iter)
+
     transform = transform or identity_transform
     if isinstance(transform, (list, tuple)):
         from torchvision.transforms import Compose
@@ -34,6 +44,10 @@ def dmap(values, transform=None, force_iter=False):
 
 
 def dzip(*datasets, zip_transform=None):
+    if len(datasets) <= 0:
+        from functools import partial
+        return partial(dzip, zip_transform=zip_transform)
+
     zip_transform = zip_transform or identity_transform
     if isinstance(zip_transform, (list, tuple)):
         from torchvision.transforms import Compose
@@ -52,6 +66,10 @@ def dzip(*datasets, zip_transform=None):
 
 
 def dcombine(*datasets, comb_transform=None):
+    if len(datasets) <= 0:
+        from functools import partial
+        return partial(dcombine, comb_transform=comb_transform)
+
     comb_transform = comb_transform or identity_transform
     if isinstance(comb_transform, (list, tuple)):
         from torchvision.transforms import Compose
@@ -70,6 +88,10 @@ def dcombine(*datasets, comb_transform=None):
 
 
 def daugment(dataset, aug_fn=None):
+    if dataset is None:
+        from functools import partial
+        return partial(daugment, aug_fn=aug_fn)
+
     aug_fn = aug_fn or identity_transform
     if isinstance(aug_fn, (list, tuple)):
         from torchvision.transforms import Compose
@@ -79,7 +101,13 @@ def daugment(dataset, aug_fn=None):
     return AugmentedDataset(dataset, aug_fn)
 
 
-def dcache(dataset, cache):
+def dcache(dataset=None, cache=None):
+    assert cache is not None
+
+    if dataset is None:
+        from functools import partial
+        return partial(dcache, cache=cache)
+
     from .model import CachedDataset
     return CachedDataset(dataset, cache)
 
@@ -108,12 +136,24 @@ def images(paths, transform=None, img_exts=["jpg", "jpeg", "png"], *, img_loader
     assert callable(transform)
 
     if not callable(img_loader):
-        try:
+        from importlib.util import find_spec as module_exists
+
+        if module_exists("imageio"):
+            from imageio import get_reader
+            from PIL.Image import fromarray
+
+            def img_loader(path):
+                img_numpy = get_reader(path).get_next_data()
+                return fromarray(img_numpy)
+        elif module_exists("PIL"):
             from PIL.Image import open as pil_loader
             img_loader = pil_loader
-        except ModuleNotFoundError as e:
+        else:
             from .utils import eprint
-            eprint("Default image loader is pillow (PIL). Module 'PIL' not found! Try 'pip install pillow' or provide custom 'img_loader'")
+            eprint(
+                "Default image loader is imageio and/or pillow (PIL).",
+                "Module 'imageio' or 'PIL' not found!",
+                "Try 'pip install imageio' or 'pip install pillow' or provide custom 'img_loader'")
             raise e
 
     def img_transform(path):
