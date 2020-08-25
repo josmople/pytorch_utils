@@ -189,8 +189,8 @@ def tensors(paths, transform=None, *, tensor_loader=None, use_glob=True, glob_re
             from torch import load as torch_loader
             tensor_loader = torch_loader
         except ModuleNotFoundError as e:
-            from sys import stderr
-            print("Default tensor loader is PyTorch (torch). Module 'torch' not found! Install PyTorch or provide custom 'tensor_loader'", file=stderr)
+            from .utils import eprint
+            eprint("Default tensor loader is PyTorch (torch). Module 'torch' not found! Install PyTorch or provide custom 'tensor_loader'")
             raise e
 
     def tensor_transform(path):
