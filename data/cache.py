@@ -10,6 +10,22 @@ class Cache:
         raise NotImplementedError()
 
 
+class DictCache(Cache):
+
+    def __init__(self, data=None):
+        self.data = {}
+        self.data.update(data or {})
+
+    def __getitem__(self, idx):
+        return self.data[idx]
+
+    def __setitem__(self, idx, val):
+        self.data[idx] = val
+
+    def __contains__(self, idx):
+        return idx in self.data
+
+
 class LambdaCache(Cache):
 
     __slots__ = ["save_fn", "load_fn", "exist_fn"]

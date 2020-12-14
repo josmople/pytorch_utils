@@ -1,14 +1,14 @@
-from torch.utils.data import Dataset, IterableDataset
+from torch.utils.data.dataset import *
 
 
 class ValueDataset(Dataset):
 
     __slots__ = ["values", "transform"]
 
-    def __init__(self, values, transform):
+    def __init__(self, values, transform=None):
         assert callable(getattr(values, "__len__", None))
         assert callable(getattr(values, "__getitem__", None))
-        assert callable(transform)
+        assert callable(transform) or transform is None
 
         self.values = values
         self.transform = transform
@@ -18,6 +18,8 @@ class ValueDataset(Dataset):
 
     def __getitem__(self, idx):
         value = self.values[idx]
+        if self.transform is None:
+            return value
         return self.transform(value)
 
 
@@ -25,16 +27,19 @@ class ValueIterableDataset(IterableDataset):
 
     __slots__ = ["values", "transform"]
 
-    def __init__(self, values, transform):
+    def __init__(self, values, transform=None):
         from collections import Iterable
         assert isinstance(values, Iterable)
-        assert callable(transform)
+        assert callable(transform) or transform is None
 
         self.values = values
         self.transform = transform
 
     @staticmethod
     def generator(values, transform):
+        if transform is None:
+            transform = (lambda x: x)
+
         for v in values:
             yield transform(v)
 
@@ -46,27 +51,30 @@ class ZipDataset(Dataset):
 
     __slots__ = ["datasets", "zip_transform"]
 
-    def __init__(self, datasets, zip_transform):
+    def __init__(self, datasets, zip_transform=None):
         assert len(datasets) > 0
 
         assert all([callable(getattr(ds, "__len__", None)) for ds in datasets])
         assert all([callable(getattr(ds, "__getitem__", None)) for ds in datasets])
 
-        assert callable(zip_transform)
-
-        ds0, *dsn = datasets
-        assert all([len(ds0) == len(ds) for ds in dsn]), "Sizes of all dataset must be the same"
+        assert callable(zip_transform) or zip_transform is None
 
         self.datasets = datasets
         self.zip_transform = zip_transform
 
+    @property
+    def sizes(self):
+        return tuple([len(ds) for ds in self.datasets])
+
     def __len__(self):
-        return len(self.datasets[0])
+        return min(self.sizes)
 
     def __getitem__(self, idx):
         array = []
         for ds in self.datasets:
             array.append(ds[idx])
+        if self.zip_transform is None:
+            return tuple(array)
         return self.zip_transform(tuple(array))
 
 
@@ -74,19 +82,22 @@ class ZipIterableDataset(IterableDataset):
 
     __slots__ = ["datasets", "zip_transform"]
 
-    def __init__(self, datasets, zip_transform):
+    def __init__(self, datasets, zip_transform=None):
         assert len(datasets) > 0
 
         from collections import Iterable
         assert all([isinstance(ds, Iterable) for ds in datasets])
 
-        assert callable(zip_transform)
+        assert callable(zip_transform) or zip_transform is None
 
         self.datasets = datasets
         self.zip_transform = zip_transform
 
     @staticmethod
     def generator(datasets, zip_transform):
+        if zip_transform is None:
+            zip_transform = (lambda x: x)
+
         for vals in zip(*datasets):
             yield zip_transform(vals)
 
@@ -98,16 +109,19 @@ class CombineDataset(Dataset):
 
     __slots__ = ["datasets", "comb_transform"]
 
-    def __init__(self, datasets, comb_transform):
+    def __init__(self, datasets, comb_transform=None, indexer=None):
         assert len(datasets) > 0
 
         assert all([callable(getattr(ds, "__len__", None)) for ds in datasets])
         assert all([callable(getattr(ds, "__getitem__", None)) for ds in datasets])
 
-        assert callable(comb_transform)
+        assert callable(comb_transform) or comb_transform is None
 
         self.datasets = datasets
         self.comb_transform = comb_transform
+
+        if callable(indexer):
+            self.indexer = indexer
 
     @staticmethod
     def indexer(i, sizes):
@@ -138,6 +152,9 @@ class CombineDataset(Dataset):
         array = []
         for i, ds in zip(idxs, self.datasets):
             array.append(ds[i])
+
+        if self.comb_transform is None:
+            return tuple(array)
         return self.comb_transform(tuple(array))
 
 
@@ -145,19 +162,25 @@ class CombineIterableDataset(IterableDataset):
 
     __slots__ = ["datasets", "comb_transform"]
 
-    def __init__(self, datasets, comb_transform):
+    def __init__(self, datasets, comb_transform, indexer=None):
         assert len(datasets) > 0
 
         from collections import Iterable
         assert all([isinstance(ds, Iterable) for ds in datasets])
 
-        assert callable(comb_transform)
+        assert callable(comb_transform) or comb_transform is None
 
         self.datasets = datasets
         self.comb_transform = comb_transform
 
+        if callable(indexer):
+            self.indexer = indexer
+
     @staticmethod
     def generator(datasets, comb_transform):
+        if comb_transform is None:
+            comb_transform = (lambda x: x)
+
         from itertools import product
         for vals in product(*datasets):
             yield comb_transform(vals)
@@ -173,13 +196,16 @@ class AugmentedDataset(IterableDataset):
     def __init__(self, values, augment):
         from collections import Iterable
         assert isinstance(values, Iterable)
-        assert callable(augment)
+        assert callable(augment) or augment is None
 
         self.values = values
         self.augment = augment
 
     @staticmethod
     def generator(values, augment):
+        if augment is None:
+            augment = (lambda x: [x])
+
         for v in values:
             for o in augment(v):
                 yield o
