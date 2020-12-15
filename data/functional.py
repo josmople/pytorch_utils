@@ -185,17 +185,19 @@ def images(paths, transform=None, *, img_loader="pil", img_autoclose=True):
     assert callable(transform)
 
     if isinstance(img_loader, str):
-        if img_loader.lower() == "pil":
-            from PIL.Image import open as pil_loader
-            img_loader = pil_loader
+        from importlib import import_module
+        img_loader = img_loader.lower()
 
-        elif img_loader.lower() == "imageio":
-            from imageio import get_reader
-            from PIL.Image import fromarray
+        if img_loader == "pil":
+            img_loader = import_module("PIL.Image").open
+        elif img_loader == "cv2":
+            img_loader = import_module("cv2").imread
+        elif img_loader == "imageio":
+            get_reader = import_module("imageio").get_reader
 
-            def img_loader(path):
-                img_numpy = get_reader(path).get_next_data()
-                return fromarray(img_numpy)
+            def imageio_loader(path):
+                return get_reader(path).get_next_data()
+            img_loader = imageio_loader
 
     if not callable(img_loader):
         from importlib.util import find_spec as module_exists
@@ -205,19 +207,24 @@ def images(paths, transform=None, *, img_loader="pil", img_autoclose=True):
         else:
             from .utils import eprint
             eprint(
-                "Default image loader is imageio and/or pillow (PIL).",
-                "Module 'imageio' or 'PIL' not found!",
-                "Try 'pip install imageio' or 'pip install pillow' or provide custom 'img_loader'")
+                "Default image loader is pillow (PIL).",
+                "Module 'PIL' not found!",
+                "Try 'pip install imageio' or 'pip install pillow' or provide custom 'img_loader'"
+            )
 
-    def img_transform(path):
-        img = img_loader(path)
-        out = transform(img)
-        if img_autoclose and callable(getattr(img, "close", None)):
-            if img == out:
-                from .utils import eprint
-                eprint(f"Warning: Auto-closing image but image is unprocessed: {path}")
-            img.close()
-        return out
+    if img_autoclose:
+        def img_transform(path):
+            img = img_loader(path)
+            out = transform(img)
+            if callable(getattr(img, "close", None)):
+                if img == out:
+                    from .utils import eprint
+                    eprint(f"Warning: Auto-closing image but image is unprocessed: {path}")
+                img.close()
+            return out
+    else:
+        def img_transform(path):
+            return transform(img_loader(path))
 
     return dmap(paths, img_transform)
 
