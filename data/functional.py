@@ -3,10 +3,6 @@
 # Basic Functions
 #####################################################
 
-
-from pytorch_utils.data.dataset import LazyDataset
-
-
 def identity_transform(x):
     return x
 
@@ -142,6 +138,7 @@ def dlazy(dataset_fn=None, dummy_len=None, as_iter=False):
         from .dataset import LazyIterableDataset
         return LazyIterableDataset(dataset_fn)
 
+    from .dataset import LazyDataset
     return LazyDataset(dataset_fn, dummy_len)
 
 
