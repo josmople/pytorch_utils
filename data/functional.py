@@ -175,7 +175,7 @@ def index_files(pathquery, transform=None, maxsize=None):
     ])
 
 
-def images(paths, transform=None, *, img_loader="pil", img_autoclose=True):
+def images(paths, transform=None, img_loader="pil", img_autoclose=True):
     if transform is None:
         img_autoclose = False
         transform = identity_transform
