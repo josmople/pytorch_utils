@@ -176,10 +176,12 @@ def index_files(pathquery, transform=None, maxsize=None):
 
 
 def images(paths, transform=None, *, img_loader="pil", img_autoclose=True):
+    if transform is None:
+        img_autoclose = False
+        transform = identity_transform
 
-    from torchvision.transforms.functional import to_tensor
-    transform = transform or to_tensor
     if isinstance(transform, (list, tuple)):
+        assert all([callable(t) for t in transform])
         from torchvision.transforms import Compose
         transform = Compose(transform)
     assert callable(transform)
