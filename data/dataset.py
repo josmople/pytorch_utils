@@ -105,7 +105,7 @@ class ZipIterableDataset(IterableDataset):
         return self.generator(self.datasets, self.zip_transform)
 
 
-class CombineDataset(Dataset):
+class ProductDataset(Dataset):
 
     __slots__ = ["datasets", "comb_transform"]
 
@@ -236,3 +236,52 @@ class CachedDataset(Dataset):
         if idx not in self.cache:
             self.cache[idx] = self.dataset[idx]
         return self.cache[idx]
+
+
+class LazyDataset(Dataset):
+
+    __slots__ = ["dataset", "dataset_fn", "dummy_len"]
+
+    def __init__(self, dataset_fn, dummy_len=None):
+        self.dataset = None
+        self.dataset_fn = dataset_fn
+        self.dummy_len = dummy_len
+
+    def _load_dataset(self):
+        dataset = self.dataset_fn() if callable(self.dataset_fn) else self.dataset_fn
+        assert callable(getattr(dataset, "__len__", None))
+        assert callable(getattr(dataset, "__getitem__", None))
+        self.dataset = dataset
+
+    def __getitem__(self, idx):
+        if self.dataset is None:
+            self._load_dataset()
+        return self.dataset[idx]
+
+    def __len__(self):
+        if self.dataset is None:
+            if self.dummy_len is not None:
+                dummy_len = self.dummy_len() if callable(self.dummy_len) else self.dummy_len
+                return int(dummy_len)
+            self._load_dataset()
+        return len(self.dataset)
+
+
+class LazyIterableDataset(IterableDataset):
+
+    __slots__ = ["dataset", "dataset_fn"]
+
+    def __init__(self, dataset_fn):
+        self.dataset = None
+        self.dataset_fn = dataset_fn
+
+    def _load_dataset(self):
+        dataset = self.dataset_fn() if callable(self.dataset_fn) else self.dataset_fn
+        from collections import Iterable
+        assert isinstance(dataset, Iterable)
+        self.dataset = dataset
+
+    def __iter__(self):
+        if self.dataset is None:
+            self._load_dataset()
+        return iter(self.dataset)

@@ -4,6 +4,9 @@
 #####################################################
 
 
+from pytorch_utils.data.dataset import LazyDataset
+
+
 def identity_transform(x):
     return x
 
@@ -25,10 +28,10 @@ def dpipe(dataset=None, operators=[]):
     return dataset
 
 
-def dmap(values=None, transform=None, force_iter=False):
+def dmap(values=None, transform=None, as_iter=False):
     if values is None:
         from functools import partial
-        return partial(dmap, transform=transform, force_iter=force_iter)
+        return partial(dmap, transform=transform, force_iter=as_iter)
 
     transform = transform or identity_transform
     if isinstance(transform, (list, tuple)):
@@ -36,7 +39,7 @@ def dmap(values=None, transform=None, force_iter=False):
         transform = Compose(transform)
 
     # If force as IterableDataset
-    if force_iter:
+    if as_iter:
         from .dataset import ValueIterableDataset
         return ValueIterableDataset(values, transform)
 
@@ -72,10 +75,10 @@ def dzip(*datasets, zip_transform=None):
     return ZipDataset(datasets, zip_transform)
 
 
-def dcombine(*datasets, comb_transform=None, custom_indexer=None):
+def dproduct(*datasets, comb_transform=None, custom_indexer=None):
     if len(datasets) <= 0:
         from functools import partial
-        return partial(dcombine, comb_transform=comb_transform)
+        return partial(dproduct, comb_transform=comb_transform)
 
     comb_transform = comb_transform or identity_transform
     if isinstance(comb_transform, (list, tuple)):
@@ -90,11 +93,11 @@ def dcombine(*datasets, comb_transform=None, custom_indexer=None):
         return CombineIterableDataset(datasets, comb_transform, indexer=custom_indexer)
 
     # Otherwise, use CombineDataset
-    from .dataset import CombineDataset
-    return CombineDataset(datasets, comb_transform, indexer=custom_indexer)
+    from .dataset import ProductDataset
+    return ProductDataset(datasets, comb_transform, indexer=custom_indexer)
 
 
-def daugment(dataset, aug_fn=None):
+def daugment(dataset=None, aug_fn=None):
     if dataset is None:
         from functools import partial
         return partial(daugment, aug_fn=aug_fn)
@@ -128,6 +131,18 @@ def dcache(dataset=None, cache=None, enable=True):
         return CachedDataset(dataset, cache)
 
     return dataset
+
+
+def dlazy(dataset_fn=None, dummy_len=None, as_iter=False):
+    if dataset_fn is None:
+        from functools import partial
+        return partial(dataset_fn, dummy_len=dummy_len, as_iter=as_iter)
+
+    if as_iter:
+        from .dataset import LazyIterableDataset
+        return LazyIterableDataset(dataset_fn)
+
+    return LazyDataset(dataset_fn, dummy_len)
 
 
 #####################################################
