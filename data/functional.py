@@ -186,28 +186,20 @@ def images(paths, transform=None, *, img_loader="pil", img_autoclose=True):
 
     if isinstance(img_loader, str):
         if img_loader.lower() == "pil":
-            from imageio import get_reader
-            from PIL.Image import fromarray
-
-            def img_loader(path):
-                img_numpy = get_reader(path).get_next_data()
-                return fromarray(img_numpy)
-
-        elif img_loader.lower() == "imageio":
             from PIL.Image import open as pil_loader
             img_loader = pil_loader
 
-    if not callable(img_loader):
-        from importlib.util import find_spec as module_exists
-
-        if module_exists("imageio"):
+        elif img_loader.lower() == "imageio":
             from imageio import get_reader
             from PIL.Image import fromarray
 
             def img_loader(path):
                 img_numpy = get_reader(path).get_next_data()
                 return fromarray(img_numpy)
-        elif module_exists("PIL"):
+
+    if not callable(img_loader):
+        from importlib.util import find_spec as module_exists
+        if module_exists("PIL"):
             from PIL.Image import open as pil_loader
             img_loader = pil_loader
         else:
