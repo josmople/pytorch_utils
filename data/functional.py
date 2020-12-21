@@ -24,6 +24,13 @@ def dpipe(dataset=None, operators=[]):
     return dataset
 
 
+def dconst(value, length, is_fn=None):
+    from .dataset import ConstantDataset
+    if is_fn is None:
+        is_fn = callable(value)
+    return ConstantDataset(value, length, is_fn)
+
+
 def dmap(values=None, transform=None, as_iter=False):
     if values is None:
         from functools import partial

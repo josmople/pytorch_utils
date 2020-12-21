@@ -285,3 +285,22 @@ class LazyIterableDataset(IterableDataset):
         if self.dataset is None:
             self._load_dataset()
         return iter(self.dataset)
+
+
+class ConstantDataset(Dataset):
+
+    def __init__(self, value, length, is_fn=False):
+        self.value = value
+        self.length = length
+        self.is_fn = is_fn
+
+        if self.is_fn:
+            assert callable(self.value)
+
+    def __getitem__(self, idx):
+        if idx >= self.length or idx < 0:
+            raise IndexError(f"Index must in [0, {self.length}) but got {idx}")
+        return self.value() if self.is_fn else self.value
+
+    def __len__(self):
+        return self.length
