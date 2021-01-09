@@ -98,12 +98,12 @@ def dzip(*datasets, zip_transform=None, as_iter=False):
         zip_transform = Compose(zip_transform)
 
     if all([is_dataset_like(ds) for ds in datasets]) and not as_iter:
-        from .dataset import ZipIterableDataset
-        return ZipIterableDataset(datasets, zip_transform)
-
-    if all([is_iterdataset_like(ds) for ds in datasets]):
         from .dataset import ZipDataset
         return ZipDataset(datasets, zip_transform)
+
+    if all([is_iterdataset_like(ds) for ds in datasets]):
+        from .dataset import ZipIterableDataset
+        return ZipIterableDataset(datasets, zip_transform)
 
     raise Exception("Parameter datasets must contain element that implement Dataset or IterableDataset")
 
