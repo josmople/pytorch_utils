@@ -71,7 +71,7 @@ def dcat(*datasets, as_iter=False):
     if all([is_dataset_like(ds) for ds in datasets]) and not as_iter:
         from .dataset import Dataset, ConcatDataset
         copy = list(datasets)
-        for idx, ds in datasets:
+        for idx, ds in enumerate(datasets):
             if not isinstance(ds, Dataset):
                 copy[idx] = dmap(ds, as_iter=False)
         return ConcatDataset(copy)
@@ -79,7 +79,7 @@ def dcat(*datasets, as_iter=False):
     if all([is_iterdataset_like(ds) for ds in datasets]):
         from .dataset import IterableDataset, ChainDataset
         copy = list(datasets)
-        for idx, ds in datasets:
+        for idx, ds in enumerate(datasets):
             if not isinstance(ds, IterableDataset):
                 copy[idx] = dmap(ds, as_iter=True)
         return ChainDataset(copy)
