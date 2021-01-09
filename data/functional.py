@@ -4,11 +4,23 @@
 #####################################################
 
 
-from pytorch_utils.data.dataset import LazyDataset
-
-
 def identity_transform(x):
     return x
+
+
+#####################################################
+# Basic Functions
+#####################################################
+
+def is_dataset_like(ds):
+    if callable(getattr(ds, "__getitem__", None)) and callable(getattr(ds, "__len__", None)):
+        return True
+    return False
+
+
+def is_iterdataset_like(ds):
+    from typing import Iterable
+    return isinstance(ds, Iterable)
 
 
 #####################################################
@@ -38,22 +50,38 @@ def dmap(values=None, transform=None, as_iter=False):
         from torchvision.transforms import Compose
         transform = Compose(transform)
 
-    # If force as IterableDataset
-    if as_iter:
-        from .dataset import ValueIterableDataset
-        return ValueIterableDataset(values, transform)
-
-    # If dataset[idx] and len(dataset) are available, use ValueDataset
-    if callable(getattr(values, "__getitem__", None)) and callable(getattr(values, "__len__", None)):
+    if is_dataset_like(values) and not as_iter:
         from .dataset import ValueDataset
         return ValueDataset(values, transform)
 
-    # Fallback to IterableDataset
-    from .dataset import ValueIterableDataset
-    return ValueIterableDataset(values, transform)
+    if is_iterdataset_like(values):
+        from .dataset import ValueIterableDataset
+        return ValueIterableDataset(values, transform)
+
+    raise Exception("Parameter datasets must contain element that implement Dataset or IterableDataset")
 
 
-def dzip(*datasets, zip_transform=None):
+def dcat(*datasets, as_iter=False):
+    if all([is_dataset_like(ds) for ds in datasets]) and not as_iter:
+        from .dataset import Dataset, ConcatDataset
+        copy = list(datasets)
+        for idx, ds in datasets:
+            if not isinstance(ds, Dataset):
+                copy[idx] = dmap(ds, as_iter=False)
+        return ConcatDataset(copy)
+
+    if all([is_iterdataset_like(ds) for ds in datasets]):
+        from .dataset import IterableDataset, ChainDataset
+        copy = list(datasets)
+        for idx, ds in datasets:
+            if not isinstance(ds, IterableDataset):
+                copy[idx] = dmap(ds, as_iter=True)
+        return ChainDataset(copy)
+
+    raise Exception("Parameter datasets must contain element that implement Dataset or IterableDataset")
+
+
+def dzip(*datasets, zip_transform=None, as_iter=False):
     if len(datasets) <= 0:
         from functools import partial
         return partial(dzip, zip_transform=zip_transform)
@@ -63,19 +91,18 @@ def dzip(*datasets, zip_transform=None):
         from torchvision.transforms import Compose
         zip_transform = Compose(zip_transform)
 
-    # Check if there are IterableDataset, then use ZipIterableDataset
-    from torch.utils.data import IterableDataset
-    if any([isinstance(ds, IterableDataset) for ds in datasets]):
-
+    if all([is_dataset_like(ds) for ds in datasets]) and not as_iter:
         from .dataset import ZipIterableDataset
         return ZipIterableDataset(datasets, zip_transform)
 
-    # Otherwise, use ZipDataset
-    from .dataset import ZipDataset
-    return ZipDataset(datasets, zip_transform)
+    if all([is_iterdataset_like(ds) for ds in datasets]):
+        from .dataset import ZipDataset
+        return ZipDataset(datasets, zip_transform)
+
+    raise Exception("Parameter datasets must contain element that implement Dataset or IterableDataset")
 
 
-def dproduct(*datasets, comb_transform=None, custom_indexer=None):
+def dproduct(*datasets, comb_transform=None, custom_indexer=None, as_iter=False):
     if len(datasets) <= 0:
         from functools import partial
         return partial(dproduct, comb_transform=comb_transform)
@@ -85,16 +112,15 @@ def dproduct(*datasets, comb_transform=None, custom_indexer=None):
         from torchvision.transforms import Compose
         comb_transform = Compose(comb_transform)
 
-    # Check if there are IterableDataset, then use CombineIterableDataset
-    from torch.utils.data import IterableDataset
-    if any([isinstance(ds, IterableDataset) for ds in datasets]):
+    if all([is_dataset_like(ds) for ds in datasets]) and not as_iter:
+        from .dataset import ProductDataset
+        return ProductDataset(datasets, comb_transform, indexer=custom_indexer)
 
-        from .dataset import CombineIterableDataset
-        return CombineIterableDataset(datasets, comb_transform, indexer=custom_indexer)
+    if all([is_iterdataset_like(ds) for ds in datasets]):
+        from .dataset import ProductIterableDataset
+        return ProductIterableDataset(datasets, comb_transform, indexer=custom_indexer)
 
-    # Otherwise, use CombineDataset
-    from .dataset import ProductDataset
-    return ProductDataset(datasets, comb_transform, indexer=custom_indexer)
+    raise Exception("Parameter datasets must contain element that implement Dataset or IterableDataset")
 
 
 def daugment(dataset=None, aug_fn=None):
@@ -142,6 +168,7 @@ def dlazy(dataset_fn=None, dummy_len=None, as_iter=False):
         from .dataset import LazyIterableDataset
         return LazyIterableDataset(dataset_fn)
 
+    from .dataset import LazyDataset
     return LazyDataset(dataset_fn, dummy_len)
 
 

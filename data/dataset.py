@@ -158,7 +158,7 @@ class ProductDataset(Dataset):
         return self.comb_transform(tuple(array))
 
 
-class CombineIterableDataset(IterableDataset):
+class ProductIterableDataset(IterableDataset):
 
     __slots__ = ["datasets", "comb_transform"]
 
@@ -175,6 +175,21 @@ class CombineIterableDataset(IterableDataset):
 
         if callable(indexer):
             self.indexer = indexer
+
+    @staticmethod
+    def indexer(i, sizes):
+        prod = 1
+        for s in sizes:
+            prod *= s
+
+        out = []
+        for s in sizes:
+            prod //= s
+            q = i // prod
+            i = i % prod
+            out.append(q)
+
+        return tuple(out)
 
     @staticmethod
     def generator(datasets, comb_transform):
