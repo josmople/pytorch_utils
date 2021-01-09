@@ -3,7 +3,6 @@
 # Basic Functions
 #####################################################
 
-
 def identity_transform(x):
     return x
 
@@ -38,6 +37,13 @@ def dpipe(dataset=None, operators=[]):
     for operator in operators:
         dataset = operator(dataset)
     return dataset
+
+
+def dconst(value, length, is_fn=None):
+    from .dataset import ConstantDataset
+    if is_fn is None:
+        is_fn = callable(value)
+    return ConstantDataset(value, length, is_fn)
 
 
 def dmap(values=None, transform=None, as_iter=False):
@@ -202,7 +208,7 @@ def index_files(pathquery, transform=None, maxsize=None):
     ])
 
 
-def images(paths, transform=None, *, img_loader="pil", img_autoclose=True):
+def images(paths, transform=None, img_loader="pil", img_autoclose=True):
     if transform is None:
         img_autoclose = False
         transform = identity_transform
