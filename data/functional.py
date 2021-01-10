@@ -17,9 +17,12 @@ def is_dataset_like(ds):
     return False
 
 
-def is_iterdataset_like(ds):
-    from typing import Iterable
-    return isinstance(ds, Iterable)
+def is_iterdataset_like(ds, strict=False):
+    if callable(getattr(ds, "__iter__", None)):
+        return True
+    if not strict and is_dataset_like(ds):
+        return True
+    return False
 
 
 #####################################################
