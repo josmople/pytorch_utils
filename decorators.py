@@ -23,7 +23,7 @@ class instanceclassmethod(object):
         return func
 
 
-def fn_module(fn: _Fn) -> _T.Union[_T.Callable[[], _T.Union[_Fn, _Module]], type]:
+def fn_module(fn: _Fn) -> _T.Union[type, _T.Callable[[], _T.Union[_Fn, _Module]]]:
     from torch.nn import Module
 
     def forward(self, *args, **kwds):
