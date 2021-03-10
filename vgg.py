@@ -235,8 +235,12 @@ class VGGExtractor(_Module):
     def __call__(self, x: _Tensor, fetches: _T.Union[int, str]) -> _Tensor: ...
     @_T.overload
     def __call__(self, x: _Tensor, fetches: _T.List[_T.Union[int, str]]) -> _T.List[_Tensor]: ...
+    @_T.overload
+    def __call__(self, x: _Tensor, fetches: _T.List[_T.Union[str]]) -> _T.List[_Tensor]: ...
+    @_T.overload
+    def __call__(self, x: _Tensor, fetches: _T.List[_T.Union[int]]) -> _T.List[_Tensor]: ...
 
-    def __call__(self, x: _Tensor, fetches: _T.Union[int, str, _T.List[_T.Union[int, str]]] = None) -> _T.Union[_Tensor, _T.List[_Tensor]]:
+    def __call__(self, x: _Tensor, fetches: _T.Union[int, str, _T.List] = None) -> _T.Union[_Tensor, _T.List[_Tensor]]:
         return super().__call__(x, fetches)
 
 
