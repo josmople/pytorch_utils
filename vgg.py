@@ -155,11 +155,11 @@ class VGGExtractor(_Module):
         assert callable(normalize_fn) or normalize_fn is None
 
         vgg_name = f"vgg{vgg_nlayer}{'_bn' if vgg_bn else ''}"
-        vgg_features: _Sequential = getattr(models, vgg_name)(pretrained=pretrained, **kwds).features
+        vgg_features = getattr(models, vgg_name)(pretrained=pretrained, **kwds).features
         initial_mapping = self.layername_index_mapping(vgg_features)
-        max_idx = (initial_mapping[str(max_layer)] + 1) if isinstance(max_layer, str) else max_layer
+        max_idx = (initial_mapping[max_layer] + 1) if isinstance(max_layer, str) else max_layer
 
-        self.model = vgg_features[:max_idx]
+        self.model: _Sequential = vgg_features[:max_idx]
         self.mapping = self.layername_index_mapping(self.model)
         self.normalize = normalize_fn
 
