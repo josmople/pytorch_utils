@@ -1,4 +1,7 @@
-from torch.nn import Module as _Module
+from torch import Tensor as _Tensor
+from torch.nn import Module as _Module, Sequential as _Sequential
+import typing as _T
+
 
 import torchvision.models.vgg as models
 
@@ -84,7 +87,7 @@ class VGGExtractor(_Module):
     """
 
     @staticmethod
-    def layername_index_mapping(features):
+    def layername_index_mapping(features: _T.List[_Module]) -> _T.Dict[str, int]:
         """
         Generates a mapping of {layername: index} based on the VGG layers (i.e. features)
         """
@@ -110,7 +113,7 @@ class VGGExtractor(_Module):
         return mapping
 
     @staticmethod
-    def fetches_to_idxs(fetches, mapping):
+    def fetches_to_idxs(fetches: _T.List[_T.Union[str, int]], mapping: _T.Dict[str, int]):
         """
         Turns a List[Union[str, int]] to List[int]
         int values in fetches refers to layer index
@@ -133,10 +136,19 @@ class VGGExtractor(_Module):
                 raise ValueError("Expected `fetches` to be list[int], list[str]")
         return idxs
 
-    def __init__(self, vgg_nlayer=19, vgg_bn=False, requires_grad=False, inplace_relu=False, max_layer=None, normalize_fn=None, pretrained=False, **kwds):
+    def __init__(
+            self,
+            vgg_nlayer: int = 19,
+            vgg_bn: bool = False,
+            requires_grad: bool = False,
+            inplace_relu: bool = False,
+            max_layer: _T.Union[int, str] = None,
+            normalize_fn: _T.Callable[[_Tensor], _Tensor] = None,
+            pretrained: bool = False,
+            **kwds):
         super().__init__()
 
-        assert isinstance(vgg_nlayer, (int, str))
+        assert isinstance(vgg_nlayer, int)
         assert isinstance(vgg_bn, bool)
         assert isinstance(requires_grad, bool)
         assert isinstance(inplace_relu, bool)
@@ -144,11 +156,11 @@ class VGGExtractor(_Module):
 
         model_name = f"vgg{vgg_nlayer}{'_bn' if vgg_bn else ''}"
         self.model = getattr(models, model_name)(pretrained=pretrained, **kwds).features
-        self.mapping = self.__class__.layername_index_mapping(self.model)
+        self.mapping = self.layername_index_mapping(self.model)
         self.normalize = normalize_fn
 
         max_idx = (self.mapping[str(max_layer)] + 1) if isinstance(max_layer, str) else max_layer
-        self.model = self.model[:max_idx]
+        self.model: _Sequential = self.model[:max_idx]
 
         for param in self.model.parameters():
             param.requires_grad_(requires_grad)
@@ -180,10 +192,10 @@ class VGGExtractor(_Module):
             return self.model(x)
         if isinstance(fetches, (int, str)):
             fetches = [fetches]
-            fetches = self.__class__.fetches_to_idxs(fetches, self.mapping)
+            fetches = self.fetches_to_idxs(fetches, self.mapping)
             return self._forward(x, fetches)[0]
         if isinstance(fetches, (tuple, list)):
-            fetches = self.__class__.fetches_to_idxs(fetches, self.mapping)
+            fetches = self.fetches_to_idxs(fetches, self.mapping)
             return self._forward(x, fetches)
         raise ValueError("Expected `fetches` to be int, str, list[int], list[str]")
 
@@ -217,7 +229,7 @@ class VGGExtractor(_Module):
         return [outputs[idx] for idx in idxs]
 
 
-del _Module
+del _Module, _Sequential
 
 if __name__ == "__main__":
     from torch import no_grad, randn
