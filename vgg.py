@@ -185,7 +185,7 @@ class VGGExtractor(_Module):
             out.insert(0, -1)
         return out
 
-    def forward(self, x, fetches=None):
+    def forward(self, x: _Tensor, fetches: _T.Union[int, str, _T.List[_T.Union[int, str]]] = None) -> _T.Union[_Tensor, _T.List[_Tensor]]:
         if fetches is None:
             if self.normalize is not None:
                 x = self.normalize(x)
@@ -199,7 +199,7 @@ class VGGExtractor(_Module):
             return self._forward(x, fetches)
         raise ValueError("Expected `fetches` to be int, str, list[int], list[str]")
 
-    def _forward(self, x, idxs):
+    def _forward(self, x: _Tensor, idxs: _T.List[int]) -> _T.List[_Tensor]:
         assert isinstance(idxs, (list, tuple))
         assert all([isinstance(idx, int) for idx in idxs])
         assert all([idx >= -2 for idx in idxs])
@@ -228,8 +228,18 @@ class VGGExtractor(_Module):
 
         return [outputs[idx] for idx in idxs]
 
+    @_T.overload
+    def __call__(self, x: _Tensor) -> _Tensor: ...
+    @_T.overload
+    def __call__(self, x: _Tensor, fetches: _T.Union[int, str]) -> _Tensor: ...
+    @_T.overload
+    def __call__(self, x: _Tensor, fetches: _T.List[_T.Union[int, str]]) -> _T.List[_Tensor]: ...
 
-del _Module, _Sequential
+    def __call__(self, *args, **kwds):
+        return super().__call__(*args, **kwds)
+
+
+del _Tensor, _Module, _Sequential, _T
 
 if __name__ == "__main__":
     from torch import no_grad, randn
