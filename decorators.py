@@ -1,6 +1,7 @@
 import typing as _T
+from torch.nn import Module as _Module
 
-Fn = _T.TypeVar("Fn")
+_Fn = _T.TypeVar("_Fn")
 
 
 class instanceclassmethod(object):
@@ -9,10 +10,10 @@ class instanceclassmethod(object):
     The value of 'self' is None if invoked as a classmethod.
     """
 
-    def __init__(self, func: Fn):
+    def __init__(self, func: _Fn):
         self.func = func
 
-    def __get__(self, instance, clas=None) -> Fn:
+    def __get__(self, instance, clas=None) -> _Fn:
         from functools import wraps
 
         @wraps(self.func)
@@ -22,4 +23,13 @@ class instanceclassmethod(object):
         return func
 
 
-del _T, Fn
+def fn_module(fn: _Fn) -> _T.Callable[[], _T.Union[_Fn, _Module]]:
+    from torch.nn import Module
+
+    def forward(self, *args, **kwds):
+        return fn(*args, **kwds)
+
+    return type(f"FnModule__{fn.__name__}", (Module, ), dict(forward=forward))
+
+
+del _Module, _T, _Fn
