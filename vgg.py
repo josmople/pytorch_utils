@@ -140,7 +140,7 @@ class VGGExtractor(_Module):
             self,
             vgg_nlayer: int = 19,
             vgg_bn: bool = False,
-            requires_grad: bool = False,
+            requires_grad: bool = True,
             inplace_relu: bool = False,
             max_layer: _T.Union[int, str] = None,
             normalize_fn: _T.Callable[[_Tensor], _Tensor] = None,
