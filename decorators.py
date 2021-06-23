@@ -24,6 +24,9 @@ class instanceclassmethod(object):
 
 
 def fn_module(fn: _Fn) -> _T.Union[type, _T.Callable[[], _T.Union[_Fn, _Module]]]:
+    """
+    Transforms functions to torch.nn.Module
+    """
     from torch.nn import Module
 
     def forward(self, *args, **kwds):
