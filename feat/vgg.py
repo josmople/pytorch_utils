@@ -1,3 +1,4 @@
+from operator import indexOf
 import typing as _T
 import torch as _th
 from .extractor import FeatureExtractor as _FeatureExtractor
@@ -117,7 +118,7 @@ class VggExtractor(_FeatureExtractor):
 
     def __init__(
         self,
-        targets: _T.List[str],
+        targets: _T.List[_T.Union[str, int]],
         vgg_nlayers: int = 13,
         vgg_bn: bool = False,
         inplace_relu: bool = False,
@@ -136,6 +137,16 @@ class VggExtractor(_FeatureExtractor):
         layers = vgg_constructor(pretrained=pretrained, **kwds).features
         names = layernames(layers)
 
+        # Check if all target layers are accounted for
+        for idx, target in enumerate(list(targets)):
+            if isinstance(target, str):
+                assert target in names
+                continue
+            if isinstance(target, int):
+                target = names[target]
+                targets[idx] = target
+                continue
+
         # Initialize the submodule storage
         from collections import OrderedDict
         modules = OrderedDict()
@@ -144,6 +155,11 @@ class VggExtractor(_FeatureExtractor):
         if callable(preprocess):
             preprocess = _Lambda(preprocess)
             modules["preprocess"] = preprocess
+
+        # The final_layer is the last in targets
+        if final_layer is None:
+            idxs = [names.index(t) for t in targets]
+            final_layer = max(idxs)
 
         # Perform module-wise processing based on parameters
         for idx, (name, layer) in enumerate(zip(names, layers)):
@@ -165,7 +181,7 @@ class VggExtractor(_FeatureExtractor):
             modules[name] = layer
 
             # Discard other layers if final_layer is reached
-            if name == final_layer or idx == final_layer:
+            if idx == final_layer or name == final_layer:
                 break
 
         # Agglomerate the modules
