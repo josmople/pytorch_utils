@@ -244,7 +244,7 @@ class VGGExtractor(_Module):
         return super().__call__(x, fetches)
 
 
-del _Tensor, _Module, _Sequential, _T
+del _T, _Tensor, _Module, _Sequential
 
 if __name__ == "__main__":
     from torch import no_grad, randn
