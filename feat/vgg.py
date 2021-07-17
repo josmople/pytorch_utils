@@ -139,9 +139,11 @@ class VggExtractor(_FeatureExtractor):
 
         # Check if all target layers are accounted for
         for idx, target in enumerate(list(targets)):
+            # Check if the target exists
             if isinstance(target, str):
                 assert target in names
                 continue
+            # Modify target (idx to name)
             if isinstance(target, int):
                 target = names[target]
                 targets[idx] = target
