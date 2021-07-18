@@ -1,4 +1,4 @@
-from . import data, dirp, feat, vgg, paths, tb
+from . import data, dirp, feat, paths, tb
 
 from .dirp import dirpath, ts
 from .paths import glob
