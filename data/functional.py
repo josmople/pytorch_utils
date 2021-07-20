@@ -332,11 +332,11 @@ def cache_file(path_template, load_fn, save_fn, make_dir=True):
     if isinstance(path_template, str):
         def path_fn(idx):
             return path_template.format(idx=idx)
-        error_msg = "The parameter 'cache_dir:str' must contain the token '{idx}' (e.g. 'cache/{idx:04}.pt') for string formatting"
+        error_msg = "The parameter 'path_template:str' must contain the token '{idx}' (e.g. 'cache/{idx:04}.pt') for string formatting"
 
     elif callable(path_template):
         path_fn = path_template
-        error_msg = "The parameter 'cache_dir:Callable' must receive one argument of type 'int' and return value of type 'str'"
+        error_msg = "The parameter 'path_template:Callable' must receive one argument of type 'int' and return value of type 'str'"
 
     try:
         sample_filepath = path_fn(0)
@@ -425,23 +425,23 @@ def dcache_dict(dataset, preloaded_data=None, enable=True):
 
 def dcache_file(dataset, path_template, load_fn, save_fn, make_dir=True, enable=True):
     from functools import partial
-    cache_gen = partial(cache_file, cache_dir=path_template, load_fn=load_fn, save_fn=save_fn, make_dir=make_dir)
+    cache_gen = partial(cache_file, path_template=path_template, load_fn=load_fn, save_fn=save_fn, make_dir=make_dir)
     return dcache(dataset, cache_gen, enable)
 
 
 def dcache_tensor(dataset, path_template, make_dir=True, enable=True):
     from functools import partial
-    cache_gen = partial(cache_tensor, cache_dir=path_template, make_dir=make_dir)
+    cache_gen = partial(cache_tensor, path_template=path_template, make_dir=make_dir)
     return dcache(dataset, cache_gen, enable)
 
 
 def dcache_text(dataset, path_template, as_array=False, make_dir=True, enable=True):
     from functools import partial
-    cache_gen = partial(cache_text, cache_dir=path_template, array=as_array, make_dir=make_dir)
+    cache_gen = partial(cache_text, path_template=path_template, array=as_array, make_dir=make_dir)
     return dcache(dataset, cache_gen, enable)
 
 
 def dcache_json(dataset, path_template, load_kwds=None, save_kwds=None, make_dir=True, enable=True):
     from functools import partial
-    cache_gen = partial(cache_json, cache_dir=path_template, load_kwds=load_kwds, save_kwds=save_kwds, make_dir=make_dir)
+    cache_gen = partial(cache_json, path_template=path_template, load_kwds=load_kwds, save_kwds=save_kwds, make_dir=make_dir)
     return dcache(dataset, cache_gen, enable)
