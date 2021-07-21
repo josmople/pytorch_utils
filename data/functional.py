@@ -417,6 +417,12 @@ def cache_json(path_template, load_kwds=None, save_kwds=None, make_dir=True):
 # Cache Dataset Macros
 #####################################################
 
+def dcache_generic(dataset, load_fn, save_fn, exist_fn, enable=True):
+    from functools import partial
+    cache_gen = partial(cache_create, load_fn=load_fn, save_fn=save_fn, exist_fn=exist_fn)
+    return dcache(dataset, cache_gen, enable)
+
+
 def dcache_dict(dataset, preloaded_data=None, enable=True):
     from functools import partial
     cache_gen = partial(cache_dict, preloaded_data=preloaded_data)
