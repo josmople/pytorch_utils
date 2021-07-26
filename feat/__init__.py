@@ -1,2 +1,2 @@
 from . import extractor, vgg
-from . extractor import FeatureExtractor
+from . extractor import SinglepassExtractor

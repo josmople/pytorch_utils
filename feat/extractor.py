@@ -11,7 +11,7 @@ class hook_output(_T.NamedTuple):
 
 def hook_singlepass(model: _Module, targets: _T.List[_T.Union[str, _Module]], early_exit=True) -> hook_output:
     """
-    Assumes the module performs single pass on each submodule (e.g. RNN not allowed)
+    Assumes the module performs single pass on each submodule (e.g. applying on RNN results in undefined behaviour)
     """
 
     from torch.utils.hooks import RemovableHandle
@@ -75,9 +75,9 @@ def hook_singlepass(model: _Module, targets: _T.List[_T.Union[str, _Module]], ea
     return hook_output(forward, unhook, cache)
 
 
-class FeatureExtractor(_Module):
+class SinglepassExtractor(_Module):
 
-    def __init__(self, model: _Module, targets: _T.List[str], early_exit=True):
+    def __init__(self, model: _Module, targets: _T.List[_T.Union[str, _Module]], early_exit=True):
         super().__init__()
 
         self._model: _Module = None

@@ -1,7 +1,7 @@
 from operator import indexOf
 import typing as _T
 import torch as _th
-from .extractor import FeatureExtractor as _FeatureExtractor
+from .extractor import SinglepassExtractor as _SinglepassExtractor
 
 import torchvision.models.vgg as base
 
@@ -111,7 +111,7 @@ class _Lambda(_th.nn.Module):
         return self.fn(*args, **kwds)
 
 
-class VggExtractor(_FeatureExtractor):
+class VggExtractor(_SinglepassExtractor):
     """
     Allows extraction of features from specific layers of the VGG network.
     """
@@ -198,4 +198,4 @@ class VggExtractor(_FeatureExtractor):
         super().__init__(model, targets)
 
 
-del _T, _th, _FeatureExtractor
+del _T, _th, _SinglepassExtractor
