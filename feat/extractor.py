@@ -111,6 +111,3 @@ class SinglepassExtractor(_Module):
     def forward(self, *args, **kwds):
         assert self._model is not None, f"The model ({self.model.__class__.__name__}) is not hooked yet"
         return self._invoke(*args, **kwds)
-
-
-del _T, _Module, _Tensor

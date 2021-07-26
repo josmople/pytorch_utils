@@ -1,6 +1,8 @@
-from operator import indexOf
 import typing as _T
-import torch as _th
+
+from torch import Tensor as _Tensor
+from torch.nn import Module as _Module
+
 from .extractor import SinglepassExtractor as _SinglepassExtractor
 
 import torchvision.models.vgg as base
@@ -76,7 +78,7 @@ def denormalize_255(tensor, mean=NORMALIZE_MEAN_255, std=NORMALIZE_STD_255, inpl
     return denormalize(tensor, mean, std, inplace)
 
 
-def layernames(features: _T.List[_th.nn.Module]) -> _T.List[str]:
+def layernames(features: _T.List[_Module]) -> _T.List[str]:
     """
     Generates a mapping of {layername: index} based on the VGG layers (i.e. features)
     """
@@ -101,7 +103,7 @@ def layernames(features: _T.List[_th.nn.Module]) -> _T.List[str]:
     return names
 
 
-class _Lambda(_th.nn.Module):
+class _Lambda(_Module):
 
     def __init__(self, fn):
         super().__init__()
@@ -124,11 +126,13 @@ class VggExtractor(_SinglepassExtractor):
         inplace_relu: bool = False,
         freeze: bool = False,
         pool: _T.Literal["max", "avg"] = "max",
-        preprocess: _T.Callable[[_th.Tensor], _th.Tensor] = normalize,
+        preprocess: _T.Callable[[_Tensor], _Tensor] = normalize,
         final_layer: _T.Union[str, int] = None,
         pretrained: bool = True,
         **kwds
     ):
+        from torch.nn import ReLU, MaxPool2d, AvgPool2d, Sequential
+
         # Look for the specific vgg model
         vgg_name = f"vgg{vgg_nlayers}{'_bn' if vgg_bn else ''}"
         vgg_constructor = getattr(base, vgg_name)
@@ -167,13 +171,13 @@ class VggExtractor(_SinglepassExtractor):
         for idx, (name, layer) in enumerate(zip(names, layers)):
 
             # In-place ReLU
-            if isinstance(layer, _th.nn.ReLU):
+            if isinstance(layer, ReLU):
                 layer.inplace = inplace_relu
 
             # Use average pool instead of max pool (useful for style transfer)
-            elif isinstance(layer, _th.nn.MaxPool2d):
+            elif isinstance(layer, MaxPool2d):
                 if pool == "avg":
-                    alt_layer = _th.nn.AvgPool2d(
+                    alt_layer = AvgPool2d(
                         kernel_size=layer.kernel_size,
                         stride=layer.stride,
                         padding=layer.padding
@@ -187,7 +191,7 @@ class VggExtractor(_SinglepassExtractor):
                 break
 
         # Agglomerate the modules
-        model = _th.nn.Sequential(modules)
+        model = Sequential(modules)
 
         # Freeze the model if desired
         if freeze:
@@ -196,6 +200,3 @@ class VggExtractor(_SinglepassExtractor):
 
         # Initialize feature extractor
         super().__init__(model, targets)
-
-
-del _T, _th, _SinglepassExtractor
