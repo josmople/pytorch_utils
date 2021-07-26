@@ -76,7 +76,7 @@ def arg(
         nargs: _T.Union[int, str] = ...,
         const: _T.Any = ...,
         default: _T.Any = ...,
-        type: _T.Union[_T.Callable[[str], _T.Any], _argparse.FileType],
+        type: _T.Union[_T.Callable[[str], _T.Any], _argparse.FileType] = ...,
         choices: _T.Iterable = ...,
         required: bool = ...,
         help: str = ...,
