@@ -41,7 +41,8 @@ class ParseArgsDescriptor(Params):
             if isinstance(val, Params):
                 if isinstance(val, ParseArgsDescriptor):
                     val.name = key
-                parser.add_argument(*val.args, **val.kwds)
+                if len(val.args) != 0 and len(val.kwds) != 0:  # Empty Params will just be an accessor
+                    parser.add_argument(*val.args, **val.kwds)
         return parser
 
     def __init__(self, *args, **kwds):
