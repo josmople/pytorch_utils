@@ -9,7 +9,7 @@ class hook_output(_T.NamedTuple):
     cache: _T.Callable[[], _T.Dict[str, _Tensor]]
 
 
-def hook(model: _Module, targets: _T.List[str, _Module], early_exit=True) -> hook_output:
+def hook(model: _Module, targets: _T.List[_T.Union[str, _Module]], early_exit=True) -> hook_output:
     from torch.utils.hooks import RemovableHandle
 
     class EarlyExit(Exception):
