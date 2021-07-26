@@ -29,6 +29,8 @@ class ParseArgsDescriptor(Params):
         if isinstance(obj, _argparse.ArgumentParser):
             from copy import deepcopy
             return deepcopy(obj)
+        if isinstance(obj, type) and issubclass(obj, _argparse.ArgumentParser):
+            return obj()
         return _argparse.ArgumentParser()
 
     @staticmethod
