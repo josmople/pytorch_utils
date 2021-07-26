@@ -67,7 +67,7 @@ class ParseArgsDescriptor(Params):
         args = ", ".join(self.args)
         kwds = ", ".join(f"{k}={v!r}" for k, v in self.kwds.items())
         params = ", ".join([args, kwds])
-        return f"{self.namespace}.{self.name}=ArgDescriptor({params})"
+        return f"{self.name}={self.__class__.__name__}({params})"
 
 
 def arg(
