@@ -18,7 +18,7 @@ class Params:
 class ParseArgsDescriptor(Params):
 
     @staticmethod
-    def namespace(obj, val=None) -> _argparse.Namespace:
+    def namespace(obj: object, objtype: type, val=None) -> _argparse.Namespace:
         if val is None:
             for name in vars(obj):
                 if name == "__namespace_attr":
@@ -29,22 +29,26 @@ class ParseArgsDescriptor(Params):
         return val
 
     @staticmethod
-    def generate_parser(obj) -> _argparse.ArgumentParser:
+    def generate_parser(obj: object, objtype: type) -> _argparse.ArgumentParser:
         if isinstance(obj, _argparse.ArgumentParser):
             from copy import deepcopy
             return deepcopy(obj)
-        if isinstance(obj, type) and issubclass(obj, _argparse.ArgumentParser):
+
+        if issubclass(objtype, _argparse.ArgumentParser):
             return obj()
+
         return _argparse.ArgumentParser()
 
     @staticmethod
-    def apply_parser_arguments(parser: _argparse.ArgumentParser, config: object) -> _argparse.ArgumentParser:
+    def apply_parser_arguments(obj: object, objtype: type, parser: _argparse.ArgumentParser) -> _argparse.ArgumentParser:
         from inspect import getattr_static
+
+        config = objtype if obj is None else obj
+
         for key in dir(config):
             val = getattr_static(config, key)
-            if isinstance(val, Params):
-                if isinstance(val, ParseArgsDescriptor):
-                    val.name = key
+            if isinstance(val, ParseArgsDescriptor):
+                val.name = key
                 if len(val.args) != 0 and len(val.kwds) != 0:  # Empty Params will just be an accessor
                     parser.add_argument(*val.args, **val.kwds)
         return parser
@@ -57,19 +61,19 @@ class ParseArgsDescriptor(Params):
         if obj is None:
             obj = objtype
 
-        namespace = self.namespace(obj)
+        namespace = self.namespace(obj, objtype)
         if namespace is None:
 
-            parser = self.generate_parser(obj)
-            parser = self.apply_parser_arguments(parser, config=objtype)
+            parser = self.generate_parser(obj, objtype)
+            parser = self.apply_parser_arguments(obj, objtype, parser)
 
             namespace = parser.parse_args()
-            self.namespace(obj, namespace)
+            self.namespace(obj, objtype, namespace)
 
         return getattr(namespace, self.name)
 
     def __str__(self):
-        args = ", ".join(self.args)
+        args = ", ".join([f"{v!r}" for v in self.args])
         kwds = ", ".join(f"{k}={v!r}" for k, v in self.kwds.items())
         params = ", ".join([args, kwds])
         return f"{self.name}={self.__class__.__name__}({params})"
