@@ -20,7 +20,6 @@ class ParseArgsDescriptor(Params):
     @staticmethod
     def namespace(obj, val=None) -> _argparse.Namespace:
         if val is None:
-            from inspect import getattr_static
             for name in vars(obj):
                 if name == "__namespace_attr":
                     return getattr(obj, "__namespace_attr")
