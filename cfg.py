@@ -20,7 +20,10 @@ class ParseArgsDescriptor(Params):
     @staticmethod
     def namespace(obj, val=None) -> _argparse.Namespace:
         if val is None:
-            return getattr(obj, "__namespace_attr", None)
+            from inspect import getmembers
+            for name, val in getmembers(obj):
+                if name == "__namespace_attr":
+                    return val
         setattr(obj, "__namespace_attr", val)
         return val
 
