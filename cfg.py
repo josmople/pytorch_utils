@@ -1,76 +1,84 @@
 import typing as _T
-import argparse as _argparse
+import argparse
 
 
-class Params:
-
-    def __init__(self, *args, **kwds):
-        self.args = args
-        self.kwds = kwds
-
-    def __str__(self):
-        args = ", ".join(self.args)
-        kwds = ", ".join(f"{k}={v!r}" for k, v in self.kwds.items())
-        params = ", ".join([args, kwds])
-        return f"{self.__class__.__name__}({params})"
-
-
-class ParseArgsDescriptor(Params):
+class ParseArgsDescriptor:
 
     @staticmethod
-    def namespace(obj: object, objtype: type, val=None) -> _argparse.Namespace:
-        if val is None:
-            for name in vars(obj):
-                if name == "__namespace_attr":
-                    return getattr(obj, "__namespace_attr")
-            return None
+    def get_namespace(obj: object, objtype: type) -> argparse.Namespace:
+        src = obj or objtype
 
-        setattr(obj, "__namespace_attr", val)
-        return val
+        keys1 = getattr(src, "__dict__", {}).keys()
+        keys2 = getattr(src, "__slots__", [])
 
-    @staticmethod
-    def generate_parser(obj: object, objtype: type) -> _argparse.ArgumentParser:
-        if isinstance(obj, _argparse.ArgumentParser):
-            from copy import deepcopy
-            return deepcopy(obj)
-
-        if issubclass(objtype, _argparse.ArgumentParser):
-            return obj()
-
-        return _argparse.ArgumentParser()
+        for name in [*keys1, *keys2]:
+            if name == "__namespace__":
+                return getattr(src, "__namespace__")
+        return None
 
     @staticmethod
-    def apply_parser_arguments(obj: object, objtype: type, parser: _argparse.ArgumentParser) -> _argparse.ArgumentParser:
+    def set_namespace(obj: object, objtype: type, val: argparse.Namespace):
+        src = obj or objtype
+        setattr(src, "__namespace__", val)
+
+    @staticmethod
+    def generate_parser(obj: object, objtype: type) -> argparse.ArgumentParser:
         from inspect import getattr_static
 
-        config = objtype if obj is None else obj
+        if isinstance(obj, argparse.ArgumentParser):
+            from copy import deepcopy
+            parser = deepcopy(obj)
+        elif issubclass(objtype, argparse.ArgumentParser):
+            parser = objtype()
+        else:
+            parser = argparse.ArgumentParser()
+
+        # Apply parser arguments
+        config = obj or objtype
 
         for key in dir(config):
             val = getattr_static(config, key)
             if isinstance(val, ParseArgsDescriptor):
-                val.name = key
+                if val.name is None:
+                    val.name = key
                 if len(val.args) != 0 and len(val.kwds) != 0:  # Empty Params will just be an accessor
                     parser.add_argument(*val.args, **val.kwds)
         return parser
 
-    def __init__(self, *args, **kwds):
-        super().__init__(*args, **kwds)
-        self.name = None
+    @staticmethod
+    def generate_namespace(obj: object, objtype: type, parser: argparse.ArgumentParser):
+        src = obj or objtype
+        custom_parameters = getattr(src, "__parameters__", None)
+        if custom_parameters is None:
+            return parser.parse_args()
+        return parser.parse_args(custom_parameters)
 
-    def __get__(self, obj, objtype=None):
-        if obj is None:
-            obj = objtype
+    def namespace(self, obj: object, objtype: type):
+        namespace = self.get_namespace(obj, objtype)
 
-        namespace = self.namespace(obj, objtype)
         if namespace is None:
-
             parser = self.generate_parser(obj, objtype)
-            parser = self.apply_parser_arguments(obj, objtype, parser)
+            raw_namespace = self.generate_namespace(obj, objtype, parser)
 
-            namespace = parser.parse_args()
-            self.namespace(obj, objtype, namespace)
+            self.set_namespace(obj, objtype, raw_namespace)
+            namespace = self.get_namespace(obj, objtype)
 
+        return namespace
+
+    def attribute(self, namespace):
         return getattr(namespace, self.name)
+
+    def __init__(self, name: str = None, args: list = None, kwds: dict = None):
+        self.name = name
+        self.args = args or []
+        self.kwds = kwds or {}
+
+    def __get__(self, obj: object, objtype: type = None):
+        namespace = self.namespace(obj, objtype)
+        return self.attribute(namespace)
+
+    def __set__(self, obj, value):
+        print(obj, value)
 
     def __str__(self):
         args = ", ".join([f"{v!r}" for v in self.args])
@@ -81,17 +89,18 @@ class ParseArgsDescriptor(Params):
 
 def arg(
         *name_or_flags: str,
-        action: _T.Union[str, _T.Type[_argparse.Action]] = ...,
+        action: _T.Union[str, _T.Type[argparse.Action]] = ...,
         nargs: _T.Union[int, str] = ...,
         const: _T.Any = ...,
         default: _T.Any = ...,
-        type: _T.Union[_T.Callable[[str], _T.Any], _argparse.FileType] = ...,
+        type: _T.Union[_T.Callable[[str], _T.Any], argparse.FileType] = ...,
         choices: _T.Iterable = ...,
         required: bool = ...,
         help: str = ...,
         metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
         dest: str = ...,
         version: str = ...,
+        namespace_attr_name=None,
         **kwargs: _T.Any
 ):
     arg_kwds = {}
@@ -120,4 +129,4 @@ def arg(
 
     arg_kwds = {**arg_kwds, **kwargs}
 
-    return ParseArgsDescriptor(*name_or_flags, **arg_kwds)
+    return ParseArgsDescriptor(name=namespace_attr_name, args=name_or_flags, kwds=arg_kwds)
