@@ -138,7 +138,7 @@ def arg(
     action: _T.Union[str, _T.Type[argparse.Action]] = ...,
     nargs: _T.Union[int, _T.Literal["*", "+"]],
     const: _T.Any = ...,
-    default: DEFAULT = ...,
+    default: _T.List[DEFAULT] = ...,
     type: _T.Union[_T.Type[DEFAULT], argparse.FileType] = ...,
     choices: _T.Iterable[DEFAULT] = ...,
     required: bool = ...,
