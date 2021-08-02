@@ -129,21 +129,99 @@ class ParseArgsDescriptor:
         return f"{self.name}={self.__class__.__name__}({params})"
 
 
+DEFAULT = _T.TypeVar("DEFAULT")
+
+
+@_T.overload
 def arg(
-        *name_or_flags: str,
-        action: _T.Union[str, _T.Type[argparse.Action]] = ...,
-        nargs: _T.Union[int, str] = ...,
-        const: _T.Any = ...,
-        default: _T.Any = ...,
-        type: _T.Union[_T.Callable[[str], _T.Any], argparse.FileType] = ...,
-        choices: _T.Iterable = ...,
-        required: bool = ...,
-        help: str = ...,
-        metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
-        dest: str = ...,
-        version: str = ...,
-        namespace_attr_name=None,
-        **kwargs: _T.Any
+    *name_or_flags: str,
+    action: _T.Union[str, _T.Type[argparse.Action]] = ...,
+    nargs: _T.Union[int, _T.Literal["*", "+"]],
+    const: _T.Any = ...,
+    default: DEFAULT = ...,
+    type: _T.Union[_T.Type[DEFAULT], argparse.FileType] = ...,
+    choices: _T.Iterable[DEFAULT] = ...,
+    required: bool = ...,
+    help: str = ...,
+    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
+    dest: str = ...,
+    version: str = ...,
+    namespace_attr_name=None,
+    **kwargs: _T.Any
+) -> _T.List[DEFAULT]: ...
+
+
+@_T.overload
+def arg(
+    *name_or_flags: str,
+    action: _T.Union[str, _T.Type[argparse.Action]] = ...,
+    nargs: _T.Literal["?"],
+    const: _T.Any = ...,
+    default: DEFAULT = ...,
+    type: _T.Union[_T.Type[DEFAULT], argparse.FileType] = ...,
+    choices: _T.Iterable[DEFAULT] = ...,
+    required: bool = ...,
+    help: str = ...,
+    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
+    dest: str = ...,
+    version: str = ...,
+    namespace_attr_name=None,
+    **kwargs: _T.Any
+) -> DEFAULT: ...
+
+
+@_T.overload
+def arg(
+    *name_or_flags: str,
+    action: _T.Union[str, _T.Type[argparse.Action]] = ...,
+    const: _T.Any = ...,
+    default: DEFAULT = ...,
+    type: _T.Union[_T.Type[DEFAULT], argparse.FileType] = ...,
+    choices: _T.Iterable[DEFAULT] = ...,
+    required: bool = ...,
+    help: str = ...,
+    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
+    dest: str = ...,
+    version: str = ...,
+    namespace_attr_name=None,
+    **kwargs: _T.Any
+) -> DEFAULT: ...
+
+
+@_T.overload
+def arg(
+    *name_or_flags: str,
+    nargs: _T.Literal["+"],
+    action: _T.Union[str, _T.Type[argparse.Action]] = ...,
+    const: _T.Any = ...,
+    default: DEFAULT = ...,
+    type: _T.Union[_T.Type[DEFAULT], argparse.FileType] = ...,
+    choices: _T.Iterable[DEFAULT] = ...,
+    required: bool = ...,
+    help: str = ...,
+    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
+    dest: str = ...,
+    version: str = ...,
+    namespace_attr_name=None,
+    **kwargs: _T.Any
+) -> DEFAULT: ...
+
+
+def arg(
+    *name_or_flags: str,
+    action: _T.Union[str, _T.Type[argparse.Action]] = ...,
+    nargs: _T.Union[int, str] = ...,
+    const: _T.Any = ...,
+    default: _T.Any = ...,
+    type: _T.Union[_T.Callable[[str], _T.Any], argparse.FileType] = ...,
+    choices: _T.Iterable = ...,
+    required: bool = ...,
+    help: str = ...,
+    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
+    dest: str = ...,
+    version: str = ...,
+    namespace_attr_name=None,
+    **kwargs: _T.Any
 ):
     arg_kwds = {}
     if action != ...:
