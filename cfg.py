@@ -45,11 +45,36 @@ class utils:
         return parser
 
     @staticmethod
-    def parse_args(parser: argparse.ArgumentParser, config: object, parameter_attr="__parameters__"):
+    def parse_args(parser: argparse.ArgumentParser, config: object, parameter_attr="__parameters__") -> argparse.Namespace:
         custom_parameters = getattr(config, parameter_attr, None)
         if custom_parameters is None:
             return parser.parse_args()
+        if isinstance(custom_parameters, str):
+            custom_parameters = utils.split_command(custom_parameters)
         return parser.parse_args(custom_parameters)
+
+    @staticmethod
+    def split_command(cmd) -> _T.List[str]:
+        """
+        Like `shlex.split`, but uses the Windows splitting syntax when run on Windows.
+
+        From: https://stackoverflow.com/a/54730743
+        """
+
+        import subprocess
+        import sys
+        import json
+
+        if not cmd:
+            return []
+        full_cmd = '{} {}'.format(
+            subprocess.list2cmdline([
+                sys.executable, '-c',
+                'import sys, json; print(json.dumps(sys.argv[1:]))'
+            ]), cmd
+        )
+        ret = subprocess.check_output(full_cmd).decode()
+        return json.loads(ret)
 
 
 class ParseArgsDescriptor:
