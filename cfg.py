@@ -68,10 +68,8 @@ class utils:
         if not cmd:
             return []
         full_cmd = '{} {}'.format(
-            subprocess.list2cmdline([
-                sys.executable, '-c',
-                'import sys, json; print(json.dumps(sys.argv[1:]))'
-            ]), cmd
+            subprocess.list2cmdline([sys.executable, '-c', 'import sys, json; print(json.dumps(sys.argv[1:]))']),
+            cmd
         )
         ret = subprocess.check_output(full_cmd).decode()
         return json.loads(ret)
