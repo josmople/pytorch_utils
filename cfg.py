@@ -188,25 +188,6 @@ def arg(
 ) -> DEFAULT: ...
 
 
-@_T.overload
-def arg(
-    *name_or_flags: str,
-    nargs: _T.Literal["+"],
-    action: _T.Union[str, _T.Type[argparse.Action]] = ...,
-    const: _T.Any = ...,
-    default: DEFAULT = ...,
-    type: _T.Union[_T.Type[DEFAULT], argparse.FileType] = ...,
-    choices: _T.Iterable[DEFAULT] = ...,
-    required: bool = ...,
-    help: str = ...,
-    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
-    dest: str = ...,
-    version: str = ...,
-    namespace_attr_name=None,
-    **kwargs: _T.Any
-) -> DEFAULT: ...
-
-
 def arg(
     *name_or_flags: str,
     action: _T.Union[str, _T.Type[argparse.Action]] = ...,
