@@ -2,9 +2,6 @@ from __future__ import annotations
 import typing as T
 
 
-# TODO add support for or, and, xor operators
-
-
 class iztype:  # Class flag
     def __eq__(self, other): raise NotImplementedError()
 
@@ -16,40 +13,39 @@ class anytype(iztype):
     def __repr__(self): return "anytype.ANY"
 
 
-class andtype(iztype):
+class logicaltype(iztype):
 
     def __init__(self, *objs, equal=True):
         self.objs = objs
         self.equal = equal
 
-    def _eq(self, other):
+    def eqops(self, other): raise NotImplementedError()
+
+    def __eq__(self, other):
+        if self.equal:
+            return self.eqops(other)
+        return not self.eqops(other)
+
+    def __str__(self): return repr(self.objs)
+    def __repr__(self): return f"{self.__class__.__name__}({', '.join([repr(obj) for obj in self.objs])})"
+
+
+class andtype(logicaltype):
+
+    def eqops(self, other):
         for obj in self.objs:
             if obj != other:
                 return False
         return True
 
-    def __eq__(self, other):
-        if self.equal:
-            return self._eq(other)
-        return not self._eq(other)
 
+class ortype(logicaltype):
 
-class ortype(iztype):
-
-    def __init__(self, *objs, equal=True):
-        self.objs = objs
-        self.equal = equal
-
-    def _eq(self, other):
+    def eqops(self, other):
         for obj in self.objs:
             if obj == other:
                 return True
         return False
-
-    def __eq__(self, other):
-        if self.equal:
-            return self._eq(other)
-        return not self._eq(other)
 
 
 class memtype(iztype):
@@ -58,6 +54,9 @@ class memtype(iztype):
         self.value: object = value
         self.empty: bool = empty
         self.equal: bool = equal
+
+    def __str__(self): return repr(self.value)
+    def __repr__(self): return f"memtype(value={self.value!r}, empty={self.empty}, equal={self.equal})"
 
     def _extract_value(self, other):
         assert not self.empty
