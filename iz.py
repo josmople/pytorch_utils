@@ -30,89 +30,6 @@ class memtype:
         return f"{self.__class__.__name__}({','.join(kv)})"
 
 
-class neq_mem(memtype):
-
-    def __eq__(self, other):
-        if self.empty:
-            self.val = other
-            self.empty = False
-            return True
-        return self.val != other
-
-    def __invert__(self):
-        return eq_mem(self.val, self.empty)
-
-    def __add__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(self.val + other_val)
-
-    def __radd__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(other_val + self.val)
-
-    def __sub__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(self.val - other_val)
-
-    def __rsub__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(other_val - self.val)
-
-    def __mul__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(self.val * other_val)
-
-    def __rmul__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(other_val * self.val)
-
-    def __pow__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(self.val ** other_val)
-
-    def __rpow__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(other_val ** self.val)
-
-    def __mod__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(self.val % other_val)
-
-    def __rmod__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(other_val % self.val)
-
-    def __truediv__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(self.val.__truediv__(other_val))
-
-    def __rtruediv__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(other_val.__truediv__(self.val))
-
-    def __floordiv__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(self.val // other_val)
-
-    def __rfloordiv__(self, other) -> neq_mem:
-        assert not isinstance(other, eq_mem)
-        other_val = other.val if isinstance(other, neq_mem) else other
-        return self.__class__(other_val // self.val)
-
-
 class eq_mem(memtype):
 
     def __eq__(self, other):
@@ -126,73 +43,184 @@ class eq_mem(memtype):
         return neq_mem(self.val, self.empty)
 
     def __add__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(self.val + other_val)
 
     def __radd__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(other_val + self.val)
 
     def __sub__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(self.val - other_val)
 
     def __rsub__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(other_val - self.val)
 
     def __mul__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(self.val * other_val)
 
     def __rmul__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(other_val * self.val)
 
     def __pow__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(self.val ** other_val)
 
     def __rpow__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(other_val ** self.val)
 
     def __mod__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(self.val % other_val)
 
     def __rmod__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(other_val % self.val)
 
     def __truediv__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(self.val.__truediv__(other_val))
 
     def __rtruediv__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(other_val.__truediv__(self.val))
 
     def __floordiv__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
         return self.__class__(self.val // other_val)
 
     def __rfloordiv__(self, other) -> eq_mem:
+        assert not self.empty
         assert not isinstance(other, neq_mem)
         other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(other_val // self.val)
+
+
+class neq_mem(memtype):
+
+    def __eq__(self, other):
+        if self.empty:
+            self.val = other
+            self.empty = False
+            return True
+        return self.val != other
+
+    def __invert__(self):
+        return eq_mem(self.val, self.empty)
+
+    def __add__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val + other_val)
+
+    def __radd__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val + self.val)
+
+    def __sub__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val - other_val)
+
+    def __rsub__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val - self.val)
+
+    def __mul__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val * other_val)
+
+    def __rmul__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val * self.val)
+
+    def __pow__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val ** other_val)
+
+    def __rpow__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val ** self.val)
+
+    def __mod__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val % other_val)
+
+    def __rmod__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val % self.val)
+
+    def __truediv__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val.__truediv__(other_val))
+
+    def __rtruediv__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val.__truediv__(self.val))
+
+    def __floordiv__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val // other_val)
+
+    def __rfloordiv__(self, other) -> neq_mem:
+        assert not self.empty
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
         return self.__class__(other_val // self.val)
 
 
