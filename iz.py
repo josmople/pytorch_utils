@@ -230,13 +230,24 @@ class neq_mem(memtype):
         return self.__class__(other_val // self.val)
 
 
-class ctx(dict):
-    ANY: anytype
+class ctx:
+
+    def __init__(self, _data=None, _override=False):
+        self._data = _data or {}
+        self._override = _override
+
+    @property
+    def ANY(self):
+        return ANY
+
+    @property
+    def NEW(self):
+        return ctx(_data=self._data, _override=True)
 
     def __getattr__(self, key) -> eq_mem:
-        if key not in self:
-            self[key] = eq_mem(val=None, empty=True)
-        return self[key]
+        if key not in self._data or self._override:
+            self._data[key] = eq_mem(val=None, empty=True)
+        return self._data[key]
 
     def __enter__(self):
         return self
@@ -245,7 +256,32 @@ class ctx(dict):
         pass
 
 
-ANY = ctx.ANY = anytype()
+class __remote_locals:
+
+    def __init__(self, stack_idx):
+        self.stack_idx = stack_idx
+
+    @property
+    def data(self):
+        from sys import _getframe
+        frame = _getframe(self.stack_idx)
+        return frame.f_locals
+
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def __setitem__(self, key, val):
+        self.data[key] = val
+
+    def __delitem__(self, key):
+        del self.data[key]
+
+    def __contains__(self, key):
+        return key in self.data
+
+
+ANY = anytype()
+NEW = ctx(__remote_locals(3), _override=True)
 
 
 def __init_module():
@@ -254,15 +290,11 @@ def __init_module():
 
     OldModuleClass = current_module.__class__
 
+    CTX = ctx(__remote_locals(5), _override=False)
+
     class NewModuleClass(OldModuleClass):
         def __getattr__(self, key):
-            import inspect
-            locals = inspect.currentframe().f_back.f_back.f_locals
-            if key not in locals:
-                locals[key] = eq_mem(val=None, empty=True)
-            val = locals[key]
-            assert isinstance(val, iztype), f"The name '{key}' is used already in the local scope"
-            return val
+            return getattr(CTX, key)
 
     current_module.__class__ = NewModuleClass
 
