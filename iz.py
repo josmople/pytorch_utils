@@ -1,8 +1,14 @@
 from __future__ import annotations
 import typing as T
 
+# TODO add support for or, and, xor operators
 
-class anytype:
+
+class iztype:  # Class flag
+    pass
+
+
+class anytype(iztype):
     def __getattr__(self, key):
         return self
 
@@ -16,7 +22,7 @@ class anytype:
         return "ANY"
 
 
-class memtype:
+class memtype(iztype):
 
     def __init__(self, val=None, empty=True):
         self.val = val
@@ -252,8 +258,11 @@ def __init_module():
         def __getattr__(self, key):
             import inspect
             locals = inspect.currentframe().f_back.f_back.f_locals
-            locals[key] = eq_mem(val=None, empty=True)
-            return locals[key]
+            if key not in locals:
+                locals[key] = eq_mem(val=None, empty=True)
+            val = locals[key]
+            assert isinstance(val, iztype), f"The name '{key}' is used already in the local scope"
+            return val
 
     current_module.__class__ = NewModuleClass
 
