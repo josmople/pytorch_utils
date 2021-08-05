@@ -55,7 +55,7 @@ def nple(n: int, vals: object, clss: type = None) -> tuple:
         clss = [WILDCARD] * n
     if callable(clss):  # `type` or `Callable`
         clss = [clss] * n
-    assert isinstance(clss, _T.Iterable), "Parameter clss must be a `type` or `Iterable[type]`"
+    assert isinstance(clss, _T.Iterable), "Parameter clss must be a `type` or `Iterable[type | Callable]`"
 
     nvals = list(vals)
     for i, (val, cls) in enumerate(zip(vals, clss)):
