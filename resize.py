@@ -1,19 +1,27 @@
 import typing as _T
+import torch as _th
 
 
 class Resize:
 
-    def __init__(self, mode="bilinear", size=None):
+    def __init__(self, mode="bilinear", size=None, scale=None, **kwds):
         self.mode: str = mode
         self.size: _T.Tuple[int, int] = size
+        self.scale: _T.Tuple[int, int] = scale
+        self.kwds = kwds
 
-    def chw(self, tensor, size=None, mode=None):
-        from torchvision.transforms.functional import resize, InterpolationMode
-        return resize(tensor, size=size or self.size, interpolation=getattr(InterpolationMode, (mode or self.mode).upper()))
+    def chw(self, tensor: _th.Tensor, *, mode=None, size=None, scale=None, **kwds):
+        assert tensor.dim() == 3
+        tensor = tensor.unsqueeze(0)
+        tensor = self.bchw(tensor, mode=mode, size=size, scale=scale, **kwds)
+        return tensor.squeeze(0)
 
-    def bchw(self, tensor, size=None, mode=None):
+    def bchw(self, tensor: _th.Tensor, *, mode=None, size=None, scale=None, **kwds):
+        assert tensor.dim() == 4
         from torch.nn.functional import interpolate
-        return interpolate(tensor, size=size or self.size, mode=(mode or self.mode))
+        local_kwds = self.kwds.copy()
+        local_kwds.update(kwds)
+        return interpolate(tensor, size=(size or self.size), scale_factor=(scale or self.scale), mode=(mode or self.mode), **local_kwds)
 
 
 bilinear = Resize("bilinear")
