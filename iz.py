@@ -16,6 +16,42 @@ class anytype(iztype):
     def __repr__(self): return "anytype.ANY"
 
 
+class andtype(iztype):
+
+    def __init__(self, *objs, equal=True):
+        self.objs = objs
+        self.equal = equal
+
+    def _eq(self, other):
+        for obj in self.objs:
+            if obj != other:
+                return False
+        return True
+
+    def __eq__(self, other):
+        if self.equal:
+            return self._eq(other)
+        return not self._eq(other)
+
+
+class ortype(iztype):
+
+    def __init__(self, *objs, equal=True):
+        self.objs = objs
+        self.equal = equal
+
+    def _eq(self, other):
+        for obj in self.objs:
+            if obj == other:
+                return True
+        return False
+
+    def __eq__(self, other):
+        if self.equal:
+            return self._eq(other)
+        return not self._eq(other)
+
+
 class memtype(iztype):
 
     def __init__(self, value: object = None, empty: bool = False, equal: bool = True):
@@ -98,6 +134,22 @@ class memtype(iztype):
     def __rfloordiv__(self, other) -> memtype:
         other_val = self._extract_value(other)
         return memtype(other_val // self.value, empty=False, equal=self.equal)
+
+    def __and__(self, other) -> memtype:
+        other_val = self._extract_value(other)
+        return andtype(self.value, other_val, equal=self.equal)
+
+    def __rand__(self, other) -> memtype:
+        other_val = self._extract_value(other)
+        return andtype(other_val, self.value, equal=self.equal)
+
+    def __or__(self, other) -> memtype:
+        other_val = self._extract_value(other)
+        return ortype(self.value, other_val, equal=self.equal)
+
+    def __ror__(self, other) -> memtype:
+        other_val = self._extract_value(other)
+        return ortype(other_val, self.value, equal=self.equal)
 
 
 class ctx:
