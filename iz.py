@@ -251,7 +251,7 @@ def __init_module():
     class NewModuleClass(OldModuleClass):
         def __getattr__(self, key):
             import inspect
-            locals = inspect.currentframe().f_back.f_locals
+            locals = inspect.currentframe().f_back.f_back.f_locals
             locals[key] = eq_mem(val=None, empty=True)
             return locals[key]
 
