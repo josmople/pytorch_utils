@@ -240,3 +240,24 @@ class ctx(dict):
 
 
 ANY = ctx.ANY = anytype()
+
+
+def __init_module():
+    import sys
+    current_module = sys.modules[__name__]
+
+    OldModuleClass = current_module.__class__
+
+    class NewModuleClass(OldModuleClass):
+        def __getattr__(self, key):
+            import inspect
+            locals = inspect.currentframe().f_back.f_locals
+            locals[key] = eq_mem(val=None, empty=True)
+            return locals[key]
+
+    current_module.__class__ = NewModuleClass
+
+    del current_module.__init_module
+
+
+__init_module()
