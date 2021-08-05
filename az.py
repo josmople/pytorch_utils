@@ -57,9 +57,10 @@ def nple(n: int, vals: object, clss: type = None) -> tuple:
         clss = [clss] * n
     assert isinstance(clss, _T.Iterable), "Parameter clss must be a `type` or `Iterable[type]`"
 
+    nvals = list(vals)
     for i, (val, cls) in enumerate(zip(vals, clss)):
         if cls == WILDCARD:
             continue
-        assert isinstance(val, cls), f"The {i}-th element must be of type {cls} but got {val.__class__} instead"
+        nvals[i] = cls(val)
 
     return tuple(vals)
