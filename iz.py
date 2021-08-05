@@ -2,7 +2,7 @@ from __future__ import annotations
 import typing as T
 
 
-class any_type:
+class anytype:
     def __getattr__(self, key):
         return self
 
@@ -16,81 +16,199 @@ class any_type:
         return "ANY"
 
 
-class mem(dict):
+class memtype:
 
-    ANY: any_type
+    def __init__(self, val=None, empty=True):
+        self.val = val
+        self.empty = empty
 
-    class unit:
-        __slots__ = "val", "empty"
+    def __str__(self):
+        return "" if self.empty else repr(self.val)
 
-        def __init__(self, val=None, empty=True):
-            self.val = val
-            self.empty = empty
-
-        def __str__(self):
-            return str(self.val)
-
-        def __repr__(self):
-            return f"mem.unit(val={self.val!r}, empty={self.empty})"
-
-    def __getattr__(self, key) -> mem.unit:
-        if key not in self:
-            self[key] = mem.unit(val=None, empty=True)
-        return self[key]
+    def __repr__(self):
+        kv = [f"{k}={v!r}" for k, v in self.__dict__.items()]
+        return f"{self.__class__.__name__}({','.join(kv)})"
 
 
-ANY = mem.ANY = any_type()
-
-
-class size:
-
-    def __init__(self, *sizes):
-        self.sizes = sizes
+class neq_mem(memtype):
 
     def __eq__(self, other):
-        if len(self.sizes) != len(other):
-            return False
-        for a, b, in zip(self.sizes, other):
-            if isinstance(a, mem.unit) and isinstance(b, mem.unit):
-                raise Exception(f"Left ({a}) and right ({b}) operand must not be both `mem.unit`")
+        if self.empty:
+            self.val = other
+            self.empty = False
+            return True
+        return self.val != other
 
-            if isinstance(a, mem.unit):
-                b_val = b.val if isinstance(b, mem.unit) else b
-                if a.empty:
-                    a.val = b_val
-                    a.empty = False
-                if a.val != b_val:
-                    return False
-                continue
+    def __invert__(self):
+        return eq_mem(self.val, self.empty)
 
-            if isinstance(b, mem.unit):
-                a_val = a.val if isinstance(a, mem.unit) else a
-                if b.empty:
-                    b.val = a_val
-                    b.empty = False
-                if b.val != a_val:
-                    return False
-                continue
+    def __add__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val + other_val)
 
-            if a != b:
-                return False
+    def __radd__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val + self.val)
 
-        return True
+    def __sub__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val - other_val)
+
+    def __rsub__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val - self.val)
+
+    def __mul__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val * other_val)
+
+    def __rmul__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val * self.val)
+
+    def __pow__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val ** other_val)
+
+    def __rpow__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val ** self.val)
+
+    def __mod__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val % other_val)
+
+    def __rmod__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val % self.val)
+
+    def __truediv__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val.__truediv__(other_val))
+
+    def __rtruediv__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val.__truediv__(self.val))
+
+    def __floordiv__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(self.val // other_val)
+
+    def __rfloordiv__(self, other) -> neq_mem:
+        assert not isinstance(other, eq_mem)
+        other_val = other.val if isinstance(other, neq_mem) else other
+        return self.__class__(other_val // self.val)
 
 
-# def __init_module():
-#     import sys
-#     current_module = sys.modules[__name__]
+class eq_mem(memtype):
 
-#     OldModuleClass = current_module.__class__
+    def __eq__(self, other):
+        if self.empty:
+            self.val = other
+            self.empty = False
+            return True
+        return self.val == other
 
-#     class NewModuleClass(OldModuleClass):
-#         def __getattr__(self, key):
-#             return self.WILDCARD
+    def __invert__(self):
+        return neq_mem(self.val, self.empty)
 
-#     current_module.__class__ = NewModuleClass
+    def __add__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(self.val + other_val)
 
-#     del current_module.__init_module
+    def __radd__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(other_val + self.val)
+
+    def __sub__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(self.val - other_val)
+
+    def __rsub__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(other_val - self.val)
+
+    def __mul__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(self.val * other_val)
+
+    def __rmul__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(other_val * self.val)
+
+    def __pow__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(self.val ** other_val)
+
+    def __rpow__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(other_val ** self.val)
+
+    def __mod__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(self.val % other_val)
+
+    def __rmod__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(other_val % self.val)
+
+    def __truediv__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(self.val.__truediv__(other_val))
+
+    def __rtruediv__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(other_val.__truediv__(self.val))
+
+    def __floordiv__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(self.val // other_val)
+
+    def __rfloordiv__(self, other) -> eq_mem:
+        assert not isinstance(other, neq_mem)
+        other_val = other.val if isinstance(other, eq_mem) else other
+        return self.__class__(other_val // self.val)
 
 
-# __init_module()
+class ctx(dict):
+    ANY: anytype
+
+    def __getattr__(self, key) -> eq_mem:
+        if key not in self:
+            self[key] = eq_mem(val=None, empty=True)
+        return self[key]
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        pass
+
+
+ANY = ctx.ANY = anytype()
