@@ -1,10 +1,6 @@
 # Code copied from https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/util/lazy_loader.py
 """A LazyLoader class."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 
 from types import ModuleType as _ModuleType
 
