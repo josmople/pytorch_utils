@@ -84,7 +84,7 @@ class SinglepassExtractor(_Module):
         self.hook_model(model=model, targets=targets, early_exit=early_exit)
 
     def hook_model(self, model: _Module, targets: _T.List[str], early_exit=True):
-        assert self._model is None, f"The model ({self.model.__class__.__name__}) is already hooked"
+        assert self._model is None, f"The model ({self._model.__class__.__name__}) is already hooked"
 
         invoke, unhook, cache = hook_singlepass(model, targets=targets, early_exit=early_exit)
 
