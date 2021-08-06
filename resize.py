@@ -27,3 +27,7 @@ class Resize:
 bilinear = Resize("bilinear")
 bicubic = Resize("bicubic")
 nearest = Resize("nearest")
+
+
+def algo(mode: _T.Literal["bilinear", "bicubic", "nearest"] = "bilinear"):
+    return Resize(mode)
