@@ -7,10 +7,15 @@ class iztype:  # Class flag
 
 
 class anytype(iztype):
+    INSTANCE: anytype
+    def __new__(cls): return anytype.INSTANCE
     def __eq__(self, other): return True
     def __getattr__(self, key): return self
     def __str__(self): return "ANY"
     def __repr__(self): return "anytype.ANY"
+
+
+anytype.INSTANCE = object.__new__(anytype)
 
 
 class invertabletype(iztype):
@@ -25,6 +30,16 @@ class invertabletype(iztype):
         dup = deepcopy(self)
         dup.pos = not dup.pos
         return dup
+
+    def __pos__(self):
+        if self.pos == True:
+            return self
+        return ~self
+
+    def __neg__(self):
+        if self.pos == False:
+            return self
+        return ~self
 
     def __eq__(self, other):
         if self.pos:
@@ -169,7 +184,7 @@ class ctx:
 
     @property
     def ANY(self):
-        return ANY
+        return anytype.INSTANCE
 
     @property
     def NEW(self):
@@ -182,8 +197,11 @@ class ctx:
 
     def __getattr__(self, key) -> memtype:
         if key not in self._data or self._override:
-            self._data[key] = memtype(value=None, empty=True, pos=self._pos)
-        return self._data[key]
+            self._data[key] = memtype(value=None, empty=True, pos=True)
+        output = self._data[key]
+        if isinstance(output, invertabletype):
+            return output if output.pos == self._pos else ~output
+        return output
 
     def __enter__(self):
         return self
@@ -192,37 +210,17 @@ class ctx:
         pass
 
 
-class __remote_locals:
+class _remote_locals:
 
     def __init__(self, _stackidx):
         self._stackidx = _stackidx
 
-    # @property
-    # def _caller_locals(self):
-    #     from sys import _getframe
-    #     frame = _getframe(self._stackidx)
-
-    #     import inspect
-    #     stacks = inspect.stack()
-    #     print("stack", len(stacks), *[f"{i}={s.function}" for i, s in enumerate(stacks)])
-
-    #     return frame.f_locals
-
     def __getitem__(self, key):
-
-        import inspect
-        stacks = inspect.stack()
-        print("get", len(stacks), *[f"{i}={s.function}" for i, s in enumerate(stacks)])
-
         from sys import _getframe
         frame = _getframe(self._stackidx)
         return frame.f_locals[key]
 
     def __setitem__(self, key, val):
-        import inspect
-        stacks = inspect.stack()
-        print("set", len(stacks), *[f"{i}={s.function}" for i, s in enumerate(stacks)])
-
         from sys import _getframe
         frame = _getframe(self._stackidx)
         frame.f_locals[key] = val
@@ -238,10 +236,11 @@ class __remote_locals:
         return key in frame.f_locals
 
 
-# if eval("not not not 1"):  # False, only provided for Intellisense to work
-#     ANY = anytype()
-#     NEW = ctx(__remote_locals(3), _override=True, _pos=True)
-#     NOT = ctx(__remote_locals(3), _override=False, _pos=False, _isroot=False)
+# Make the 'module' emulate the 'ctx' class
+
+ANY = anytype.INSTANCE
+NEW = ctx(_remote_locals(2), _override=True, _pos=True, _isroot=False)
+NOT = ctx(_remote_locals(2), _override=False, _pos=False, _isroot=False)
 
 
 def __init_module():
@@ -250,10 +249,16 @@ def __init_module():
     current_module = sys.modules[__name__]
     OldModuleClass = current_module.__class__
 
-    class NewModuleClass(ctx, OldModuleClass):
-        ...
+    class NewModuleClass(OldModuleClass):
+        def __getattr__(self, key) -> memtype:
+            caller_locals = _remote_locals(3)
+            if key not in caller_locals:
+                caller_locals[key] = memtype(value=None, empty=True, pos=True)
+            output = caller_locals[key]
+            if isinstance(output, invertabletype):
+                return output if output.pos else ~output
+            return output
     current_module.__class__ = NewModuleClass
-    ctx.__init__(current_module, _data=__remote_locals(3), _override=False)
 
 
 __init_module()
