@@ -216,7 +216,6 @@ def __init_module():
     current_module.__class__ = NewModuleClass
     ctx.__init__(current_module, _data=__remote_locals(4), _override=False)
 
-    del current_module.__init_module
-
 
 __init_module()
+del __init_module

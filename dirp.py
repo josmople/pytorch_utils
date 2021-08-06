@@ -34,3 +34,19 @@ def dirpath(*paths, auto_makedir=True):
             return path
 
     return resolve_path
+
+
+def __init_module():
+    import sys
+    current_module = sys.modules[__name__]
+
+    OldModuleClass = current_module.__class__
+
+    class NewModuleClass(OldModuleClass):
+        def __call__(self, *paths):
+            return dirpath(*paths, auto_makedir=True)
+    current_module.__class__ = NewModuleClass
+
+
+__init_module()
+del __init_module
