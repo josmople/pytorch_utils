@@ -8,12 +8,11 @@ class LazyLoader(_ModuleType):
     Code copied from https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/util/lazy_loader.py
     """
 
-    # The lint error here is incorrect.
-    def __init__(self, name, parent_module_globals):  # pylint: disable=super-on-old-class
+    def __init__(self, name, parent_module_globals):
         self._parent_module_globals = parent_module_globals
         self._module_cache = None
 
-        super(LazyLoader, self).__init__(name)
+        super().__init__(name)
 
     @property
     def _module(self):
