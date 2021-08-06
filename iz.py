@@ -72,6 +72,7 @@ class memtype(invertabletype):
 
     def equals(self, other):
         if self.empty:
+            assert self.pos, "Initialization of value must be done in a positive context"
             self.value = other
             self.empty = False
             return True
@@ -181,7 +182,7 @@ class ctx:
 
     def __getattr__(self, key) -> memtype:
         if key not in self._data or self._override:
-            self._data[key] = memtype(value=None, empty=True, pos=True)
+            self._data[key] = memtype(value=None, empty=True, pos=self._pos)
         return self._data[key]
 
     def __enter__(self):
@@ -196,29 +197,51 @@ class __remote_locals:
     def __init__(self, _stackidx):
         self._stackidx = _stackidx
 
-    @property
-    def _caller_locals(self):
-        from sys import _getframe
-        frame = _getframe(self._stackidx)
-        return frame.f_locals
+    # @property
+    # def _caller_locals(self):
+    #     from sys import _getframe
+    #     frame = _getframe(self._stackidx)
+
+    #     import inspect
+    #     stacks = inspect.stack()
+    #     print("stack", len(stacks), *[f"{i}={s.function}" for i, s in enumerate(stacks)])
+
+    #     return frame.f_locals
 
     def __getitem__(self, key):
-        return self._caller_locals[key]
+
+        import inspect
+        stacks = inspect.stack()
+        print("get", len(stacks), *[f"{i}={s.function}" for i, s in enumerate(stacks)])
+
+        from sys import _getframe
+        frame = _getframe(self._stackidx)
+        return frame.f_locals[key]
 
     def __setitem__(self, key, val):
-        self._caller_locals[key] = val
+        import inspect
+        stacks = inspect.stack()
+        print("set", len(stacks), *[f"{i}={s.function}" for i, s in enumerate(stacks)])
+
+        from sys import _getframe
+        frame = _getframe(self._stackidx)
+        frame.f_locals[key] = val
 
     def __delitem__(self, key):
-        del self._caller_locals[key]
+        from sys import _getframe
+        frame = _getframe(self._stackidx)
+        del frame.f_locals[key]
 
     def __contains__(self, key):
-        return key in self._caller_locals
+        from sys import _getframe
+        frame = _getframe(self._stackidx)
+        return key in frame.f_locals
 
 
-if eval("not not not 1"):  # False, only provided for Intellisense to work
-    ANY = anytype()
-    NEW = ctx(__remote_locals(3), _override=True, _pos=True)
-    NOT = ctx(__remote_locals(3), _override=False, _pos=False, _isroot=False)
+# if eval("not not not 1"):  # False, only provided for Intellisense to work
+#     ANY = anytype()
+#     NEW = ctx(__remote_locals(3), _override=True, _pos=True)
+#     NOT = ctx(__remote_locals(3), _override=False, _pos=False, _isroot=False)
 
 
 def __init_module():
@@ -230,7 +253,7 @@ def __init_module():
     class NewModuleClass(ctx, OldModuleClass):
         ...
     current_module.__class__ = NewModuleClass
-    ctx.__init__(current_module, _data=__remote_locals(4), _override=False)
+    ctx.__init__(current_module, _data=__remote_locals(3), _override=False)
 
 
 __init_module()
