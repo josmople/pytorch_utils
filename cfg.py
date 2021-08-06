@@ -101,7 +101,7 @@ class ParseArgsDescriptor:
     def namespace(self, obj: object, objtype: type):
         namespace = self.get_namespace(obj, objtype)
 
-        if namespace is None:
+        if not namespace:
             parser = self.create_parser(obj, objtype)
             raw_namespace = self.create_namespace(obj, objtype, parser)
 
