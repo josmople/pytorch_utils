@@ -38,8 +38,8 @@ def dirpath(*paths, auto_makedir=True):
 
 def __init_module():
     import sys
-    current_module = sys.modules[__name__]
 
+    current_module = sys.modules[__name__]
     OldModuleClass = current_module.__class__
 
     class NewModuleClass(OldModuleClass):

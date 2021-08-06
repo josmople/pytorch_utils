@@ -207,12 +207,12 @@ NEW = ctx(__remote_locals(3), _override=True)
 
 def __init_module():
     import sys
-    current_module = sys.modules[__name__]
 
+    current_module = sys.modules[__name__]
     OldModuleClass = current_module.__class__
 
     class NewModuleClass(ctx, OldModuleClass):
-        pass
+        ...
     current_module.__class__ = NewModuleClass
     ctx.__init__(current_module, _data=__remote_locals(4), _override=False)
 
