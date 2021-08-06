@@ -53,16 +53,24 @@ def ignore_unmatched_kwargs(f):
     return inner
 
 
-def fn_module(fn: _Fn) -> _T.Union[type, _T.Callable[[], _T.Union[_Fn, _Module]]]:
+def as_pytorch_module(fn: _Fn = None, *, include_self=False) -> _T.Union[type, _T.Callable[[], _T.Union[_Fn, _Module]]]:
     """
     Transforms functions to torch.nn.Module
     """
+    if fn is None:
+        from functools import partial
+        return partial(as_pytorch_module, include_self=include_self)
+
     from torch.nn import Module
 
-    def forward(self, *args, **kwds):
-        return fn(*args, **kwds)
+    if include_self:
+        def forward(self, *args, **kwds):
+            return fn(self, *args, **kwds)
+    else:
+        def forward(self, *args, **kwds):
+            return fn(*args, **kwds)
 
-    return type(f"FnModule__{fn.__name__}", (Module, ), dict(forward=forward))
+    return type(f"LambdaModule__{fn.__name__}", (Module, ), dict(forward=forward))
 
 
 del _Module, _T, _Fn
