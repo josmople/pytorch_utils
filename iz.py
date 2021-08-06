@@ -13,149 +13,158 @@ class anytype(iztype):
     def __repr__(self): return "anytype.ANY"
 
 
-class logicaltype(iztype):
+class invertabletype(iztype):
 
-    def __init__(self, *objs, equal=True):
-        self.objs = objs
-        self.equal = equal
+    def __init__(self, pos=True) -> None:
+        self.pos = pos
 
-    def eqops(self, other): raise NotImplementedError()
+    def equals(self, other): raise NotImplementedError()
+
+    def __invert__(self):
+        from copy import deepcopy
+        dup = deepcopy(self)
+        dup.pos = not dup.pos
+        return dup
 
     def __eq__(self, other):
-        if self.equal:
-            return self.eqops(other)
-        return not self.eqops(other)
+        if self.pos:
+            return self.equals(other)
+        return not self.equals(other)
 
-    def __str__(self): return repr(self.objs)
-    def __repr__(self): return f"{self.__class__.__name__}({', '.join([repr(obj) for obj in self.objs])})"
+
+class logicaltype(invertabletype):
+
+    def __init__(self, *comps: object, pos: bool = True):
+        super().__init__(pos=pos)
+        self.comps = comps
+
+    def __str__(self): return repr(self.comps)
+    def __repr__(self): return f"{self.__class__.__name__}({', '.join([repr(obj) for obj in self.comps])})"
 
 
 class andtype(logicaltype):
 
-    def eqops(self, other):
-        for obj in self.objs:
-            if obj != other:
+    def equals(self, other):
+        for comp in self.comps:
+            if comp != other:
                 return False
         return True
 
 
 class ortype(logicaltype):
 
-    def eqops(self, other):
-        for obj in self.objs:
-            if obj == other:
+    def equals(self, other):
+        for comp in self.comps:
+            if comp == other:
                 return True
         return False
 
 
-class memtype(iztype):
+class memtype(invertabletype):
 
-    def __init__(self, value: object = None, empty: bool = False, equal: bool = True):
+    def __init__(self, value: object = None, empty: bool = False, pos: bool = True):
+        invertabletype.__init__(self, pos=pos)
         self.value: object = value
         self.empty: bool = empty
-        self.equal: bool = equal
 
     def __str__(self): return repr(self.value)
-    def __repr__(self): return f"memtype(value={self.value!r}, empty={self.empty}, equal={self.equal})"
+    def __repr__(self): return f"memtype(value={self.value!r}, empty={self.empty}, equal={self.pos})"
+
+    def equals(self, other):
+        if self.empty:
+            self.value = other
+            self.empty = False
+            return True
+        return self.value == other
 
     def _extract_value(self, other):
         assert not self.empty
         if isinstance(other, memtype):
             assert not other.empty
-            assert self.equal == other.equal
+            assert self.pos == other.pos
             other = other.value
         return other
 
-    def __eq__(self, other):
-        if self.empty:
-            self.value = other
-            self.empty = False
-            return True
-        if self.equal:
-            return self.value == other
-        return self.value != other
-
-    def __invert__(self):
-        return memtype(self.value, self.empty, not self.equal)
-
     def __add__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(self.value + other_val, empty=False, equal=self.equal)
+        return memtype(self.value + other_val, empty=False, pos=self.pos)
 
     def __radd__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(other_val + self.value, empty=False, equal=self.equal)
+        return memtype(other_val + self.value, empty=False, pos=self.pos)
 
     def __sub__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(self.value - other_val, empty=False, equal=self.equal)
+        return memtype(self.value - other_val, empty=False, pos=self.pos)
 
     def __rsub__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(other_val - self.value, empty=False, equal=self.equal)
+        return memtype(other_val - self.value, empty=False, pos=self.pos)
 
     def __mul__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(self.value * other_val, empty=False, equal=self.equal)
+        return memtype(self.value * other_val, empty=False, pos=self.pos)
 
     def __rmul__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(other_val * self.value, empty=False, equal=self.equal)
+        return memtype(other_val * self.value, empty=False, pos=self.pos)
 
     def __pow__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(self.value ** other_val, empty=False, equal=self.equal)
+        return memtype(self.value ** other_val, empty=False, pos=self.pos)
 
     def __rpow__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(other_val ** self.value, empty=False, equal=self.equal)
+        return memtype(other_val ** self.value, empty=False, pos=self.pos)
 
     def __mod__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(self.value % other_val, empty=False, equal=self.equal)
+        return memtype(self.value % other_val, empty=False, pos=self.pos)
 
     def __rmod__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(other_val % self.value, empty=False, equal=self.equal)
+        return memtype(other_val % self.value, empty=False, pos=self.pos)
 
     def __truediv__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(self.value.__truediv__(other_val), empty=False, equal=self.equal)
+        return memtype(self.value.__truediv__(other_val), empty=False, pos=self.pos)
 
     def __rtruediv__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(other_val.__truediv__(self.value), empty=False, equal=self.equal)
+        return memtype(other_val.__truediv__(self.value), empty=False, pos=self.pos)
 
     def __floordiv__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(self.value // other_val, empty=False, equal=self.equal)
+        return memtype(self.value // other_val, empty=False, pos=self.pos)
 
     def __rfloordiv__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return memtype(other_val // self.value, empty=False, equal=self.equal)
+        return memtype(other_val // self.value, empty=False, pos=self.pos)
 
     def __and__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return andtype(self.value, other_val, equal=self.equal)
+        return andtype(self.value, other_val, pos=self.pos)
 
     def __rand__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return andtype(other_val, self.value, equal=self.equal)
+        return andtype(other_val, self.value, pos=self.pos)
 
     def __or__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return ortype(self.value, other_val, equal=self.equal)
+        return ortype(self.value, other_val, pos=self.pos)
 
     def __ror__(self, other) -> memtype:
         other_val = self._extract_value(other)
-        return ortype(other_val, self.value, equal=self.equal)
+        return ortype(other_val, self.value, pos=self.pos)
 
 
 class ctx:
 
-    def __init__(self, _data=None, _override=False):
-        self._data = _data or {}
-        self._override = _override
+    def __init__(self, _data: T.MutableMapping = None, _override: bool = False, _pos: bool = True, _isroot=True):
+        self._data: T.MutableMapping = _data or {}
+        self._override: bool = _override
+        self._pos: bool = _pos
+        self._isroot: bool = _isroot
 
     @property
     def ANY(self):
@@ -163,11 +172,16 @@ class ctx:
 
     @property
     def NEW(self):
-        return ctx(_data=self._data, _override=True)
+        assert self._isroot, "This functionality can only be access by root 'ctx'"
+        return ctx(_data=self._data, _override=True, _pos=self._pos, _isroot=False)
+
+    @property
+    def NOT(self):
+        return ctx(_data=self._data, _override=self._override, _pos=not self._pos, _isroot=False)
 
     def __getattr__(self, key) -> memtype:
         if key not in self._data or self._override:
-            self._data[key] = memtype(value=None, empty=True, equal=True)
+            self._data[key] = memtype(value=None, empty=True, pos=True)
         return self._data[key]
 
     def __enter__(self):
@@ -201,8 +215,10 @@ class __remote_locals:
         return key in self._caller_locals
 
 
-ANY = anytype()
-NEW = ctx(__remote_locals(3), _override=True)
+if eval("not not not 1"):  # False, only provided for Intellisense to work
+    ANY = anytype()
+    NEW = ctx(__remote_locals(3), _override=True, _pos=True)
+    NOT = ctx(__remote_locals(3), _override=False, _pos=False, _isroot=False)
 
 
 def __init_module():
