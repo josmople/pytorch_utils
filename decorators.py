@@ -23,6 +23,36 @@ class instanceclassmethod(object):
         return func
 
 
+def ignore_unmatched_kwargs(f):
+    """Make function ignore unmatched kwargs.
+
+    If the function already has the catch all **kwargs, do nothing.
+
+    From: https://stackoverflow.com/a/63787701
+    """
+    from inspect import Parameter, signature
+    import functools
+
+    if any(param.kind == Parameter.VAR_KEYWORD for param in signature(f).parameters.values()):
+        return f
+    #
+
+    @functools.wraps(f)
+    def inner(*args, **kwargs):
+        # For each keyword arguments recognised by f, take their binding from **kwargs received
+        filtered_kwargs = {
+            name: kwargs[name]
+            for name, param in signature(f).parameters.items()
+            if name in kwargs
+            and (
+                param.kind is Parameter.KEYWORD_ONLY or
+                param.kind is Parameter.POSITIONAL_OR_KEYWORD
+            )
+        }
+        return f(*args, **filtered_kwargs)
+    return inner
+
+
 def fn_module(fn: _Fn) -> _T.Union[type, _T.Callable[[], _T.Union[_Fn, _Module]]]:
     """
     Transforms functions to torch.nn.Module
