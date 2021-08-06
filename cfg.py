@@ -20,19 +20,19 @@ class utils:
         setattr(src, namespace_attr, val)
 
     @staticmethod
-    def create_parser_instance(config: object) -> argparse.ArgumentParser:
-        if isinstance(config, type):
-            if issubclass(config, argparse.ArgumentParser):
-                return config()
+    def copy_parser(base: object) -> argparse.ArgumentParser:
+        if isinstance(base, type):
+            if issubclass(base, argparse.ArgumentParser):
+                return base()
 
-        if isinstance(config, argparse.ArgumentParser):
+        if isinstance(base, argparse.ArgumentParser):
             from copy import deepcopy
-            return deepcopy(config)
+            return deepcopy(base)
 
         return argparse.ArgumentParser()
 
     @staticmethod
-    def apply_parser_config(parser: argparse.ArgumentParser, config: object) -> argparse.ArgumentParser:
+    def apply_config(parser: argparse.ArgumentParser, config: object) -> argparse.ArgumentParser:
         from inspect import getattr_static
 
         for key in dir(config):
@@ -45,7 +45,13 @@ class utils:
         return parser
 
     @staticmethod
-    def parse_args(parser: argparse.ArgumentParser, config: object, parameter_attr="__parameters__") -> argparse.Namespace:
+    def create_parser(config):
+        parser = utils.copy_parser(config)
+        parser = utils.apply_config(parser, config)
+        return parser
+
+    @staticmethod
+    def create_namespace(parser: argparse.ArgumentParser, config: object, parameter_attr="__parameters__") -> argparse.Namespace:
         custom_parameters = getattr(config, parameter_attr, None)
         if custom_parameters is None:
             return parser.parse_args()
@@ -77,26 +83,21 @@ class utils:
 
 class ParseArgsDescriptor:
 
-    @staticmethod
-    def get_namespace(obj: object, objtype: type) -> argparse.Namespace:
+    def get_namespace(self, obj: object, objtype: type) -> argparse.Namespace:
         src = obj or objtype
         return utils.get_namespace(src)
 
-    @staticmethod
-    def set_namespace(obj: object, objtype: type, val: argparse.Namespace):
+    def set_namespace(self, obj: object, objtype: type, val: argparse.Namespace):
         src = obj or objtype
         utils.set_namespace(src, val)
 
-    @staticmethod
-    def create_parser(obj: object, objtype: type) -> argparse.ArgumentParser:
+    def create_parser(self, obj: object, objtype: type) -> argparse.ArgumentParser:
         config = obj or objtype
-        parser = utils.create_parser_instance(config)
-        return utils.apply_parser_config(parser, config)
+        return utils.create_parser(config)
 
-    @staticmethod
-    def create_namespace(obj: object, objtype: type, parser: argparse.ArgumentParser):
+    def create_namespace(self, obj: object, objtype: type, parser: argparse.ArgumentParser):
         config = obj or objtype
-        return utils.parse_args(parser, config)
+        return utils.create_namespace(parser, config)
 
     def namespace(self, obj: object, objtype: type):
         namespace = self.get_namespace(obj, objtype)
