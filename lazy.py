@@ -35,6 +35,7 @@ class LazyLoader(_ModuleType):
         # lookups are efficient (__getattr__ is only called on lookups that fail).
         self.__dict__.update(module.__dict__)
 
+        # Store then return the value
         self._module_cache = module
         return module
 
