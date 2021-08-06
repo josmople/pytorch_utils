@@ -225,11 +225,6 @@ class _remote_locals:
         frame = _getframe(self._stackidx)
         frame.f_locals[key] = val
 
-    def __delitem__(self, key):
-        from sys import _getframe
-        frame = _getframe(self._stackidx)
-        del frame.f_locals[key]
-
     def __contains__(self, key):
         from sys import _getframe
         frame = _getframe(self._stackidx)
