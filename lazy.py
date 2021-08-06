@@ -5,9 +5,6 @@ class LazyLoader(_ModuleType):
     """
     Lazily import a module, mainly to avoid pulling in large dependencies.
 
-    `contrib`, and `ffmpeg` are examples of modules that are large and not always
-    needed, and this allows them to only be loaded when they are used.
-
     Code copied from https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/util/lazy_loader.py
     """
 
@@ -30,8 +27,8 @@ class LazyLoader(_ModuleType):
 
         # Find the name of this object (LazyLoader) in the parent's namespace
         # Then insert the actual module in place of this object (LazyLoader)
-        for local_name, value in self._parent_module_globals:
-            if value == self:
+        for local_name, value in self._parent_module_globals.items():
+            if id(value) == id(self):
                 self._parent_module_globals[local_name] = module  # Replace
                 break
 
@@ -59,24 +56,30 @@ def lazyload(name, module_globals=None):
     return LazyLoader(name, module_globals)
 
 
-def lazyload_submodules(root_module_name=None, include_submodules=None, exclude_submodules=None, stack_idx=1) -> True:
+def lazyload_submodules(root_module_globals=None, root_module_name=None, include_submodules=None, exclude_submodules=None) -> True:
     """
-    Searches all possible submodules and makes them lazily-loaded.
+    Searches all possible submodules (relative to the root module) and makes them lazily-loaded.
 
-    root_module_name - defaults to the __package__.
+    Args:
+        root_module_globals: defaults to ``sys._getframe(1).f_globals`` (i.e. ``globals()`` of the caller).
+        root_module_name: defaults to ``__package__``.
+        include_submodules: if not ``None``, will reject not in the list.
+        exclude_submodules: if not ``None``, will reject in the list.
+        stack_idx: frame references stack (1 -> the scope of the package/code that called this function).
 
-    include_submodules - if not none, will reject not in the list.
+    Returns:
+        The boolean value False. But it is annotated as True. This action is performed to fool Intellisense.
 
-    exclude_submodules - if not none, will reject in the list.
-
-    stack_idx - frame references stack (1 -> the scope of the package/code that called this function).
+    >>> if lazyload_submodules(): # Annotated to have `True` return type
+    >>>     # Statements inside this block is recorded by Intellisense for auto-completion
+    >>>     from . import submodule # <- Will not actually run since actual return value is `False`
     """
 
     from sys import _getframe
     from glob import glob
     from os.path import dirname, basename, splitext
 
-    variables = _getframe(stack_idx).f_globals
+    variables = root_module_globals or _getframe(1).f_globals
     filepath = variables["__file__"]
     root_module_name = root_module_name or variables["__package__"]
 
@@ -102,13 +105,5 @@ def lazyload_submodules(root_module_name=None, include_submodules=None, exclude_
     for submodule_name in submodules:
         variables[submodule_name] = LazyLoader(f"{root_module_name}.{submodule_name}", variables)
 
-    # Put the function call in an if statement for intellisense
-    # See example below
-    # ```
-    # # <Actual> return value is False, but <Annotation> says True
-    # if load_lazy_submodules():
-    #     # Will be registered by intellisense due to <Annotation=True>
-    #     # But not actually loaded due to return value <Actual=False>
-    #     from . import submodule
-    # ```
+    # Put the function call in an if statement for Intellisense
     return eval("not not not not not 1", {}, {})
