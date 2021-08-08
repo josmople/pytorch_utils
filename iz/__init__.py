@@ -32,7 +32,7 @@ def __init_module():
         def __getattr__(self, key):
             locals_dict = _getframe(2).f_locals
             if key not in locals_dict:
-                locals_dict[key] = classes.valuetype(...)
+                locals_dict[key] = classes.valuetype()
             return locals_dict[key]
 
     current_module.__class__ = NewModuleClass
