@@ -1,6 +1,5 @@
 import typing as _T
 
-WILDCARD = ...
 
 A = _T.TypeVar("A")
 B = _T.TypeVar("B")
@@ -52,14 +51,14 @@ def tuple_n(n: int, vals: object, clss: type = None) -> tuple:
         vals = [vals] * n
 
     if clss is None:
-        clss = [WILDCARD] * n
+        clss = [None] * n
     if callable(clss):  # `type` or `Callable`
         clss = [clss] * n
     assert isinstance(clss, _T.Iterable), "Parameter clss must be a `type` or `Iterable[type | Callable]`"
 
     nvals = list(vals)
     for i, (val, cls) in enumerate(zip(vals, clss)):
-        if cls == WILDCARD:
+        if cls == None:
             continue
         assert callable(cls), f"Parameter clss[{i}] must be `type` or `Callable`"
         nvals[i] = cls(val)
