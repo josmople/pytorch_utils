@@ -41,7 +41,9 @@ class utils:
                 if val.name is None:
                     val.name = key
                 if len(val.args) != 0 and len(val.kwds) != 0:  # Empty Params will just be an accessor
-                    parser.add_argument(*val.args, **val.kwds)
+                    args = (f"--{key}", *args)
+                    kwds = val.kwds
+                    parser.add_argument(*args, **kwds)
         return parser
 
     @staticmethod
@@ -148,6 +150,7 @@ def arg(
     dest: str = ...,
     version: str = ...,
     namespace_attr_name=None,
+    attr_name_as_argparse_name=True,
     **kwargs: _T.Any
 ) -> _T.List[DEFAULT]: ...
 
@@ -167,6 +170,7 @@ def arg(
     dest: str = ...,
     version: str = ...,
     namespace_attr_name=None,
+    attr_name_as_argparse_name=True,
     **kwargs: _T.Any
 ) -> DEFAULT: ...
 
@@ -185,6 +189,7 @@ def arg(
     dest: str = ...,
     version: str = ...,
     namespace_attr_name=None,
+    attr_name_as_argparse_name=True,
     **kwargs: _T.Any
 ) -> DEFAULT: ...
 
