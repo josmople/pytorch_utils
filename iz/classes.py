@@ -1,5 +1,4 @@
 from __future__ import annotations
-import typing as T
 
 
 class iztype:  # Class flag
@@ -86,13 +85,13 @@ class valuetype(iztype, operators):
 
     def __eq__(self, other):
         if isinstance(other, valuetype):
-            if (self.init, other.init) == (True, True):
+            if self.init == True and other.init == True:
                 return self.value == other.value
-            if (self.init, other.init) == (False, False):
+            if self.init == False and other.init == False:
                 raise Exception(f"When computing equality between two {valuetype}, at least one should be initialized.")
-            if (self.init, other.init) == (False, True):
+            if self.init == False and other.init == True:
                 return self == other.value
-            if (self.init, other.init) == (True, False):
+            if self.init == True and other.init == False:
                 return other == self.value
 
         if self.init:
@@ -101,6 +100,13 @@ class valuetype(iztype, operators):
         self.value = other
         self.init = True
         return True
+
+    def __call__(self, value):
+        if self.init:
+            raise Exception(f"This {valuetype} is already initialized with value {self.value!r}")
+        self.value = value
+        self.init = True
+        return self
 
     def __str__(self): return repr(self.value)
     def __repr__(self): return f"valuetype(value={self.value!r}, init={self.init})"
@@ -143,7 +149,9 @@ class ortype(iztype, operators):
 
 class lambdatype(iztype, operators):
 
-    def __init__(self, ops: T.Callable, *args):
+    def __init__(self, ops, *args):
+        if not callable(ops):
+            raise ValueError("Parameter 'ops' must be callable")
         self.ops = ops
         self.args = args
 
@@ -159,163 +167,3 @@ class lambdatype(iztype, operators):
 
     def __str__(self): return f"{self.ops.__name__}({', '.join(map(repr, self.args))})"
     def __repr__(self): return f"lambdatype(ops={self.ops!r}, args={list(self.args)!r})"
-
-
-class ctx:
-
-    def __init__(self, data, default):
-        assert callable(getattr(data, "__getitem__", None))
-        assert callable(getattr(data, "__setitem__", None))
-        assert callable(getattr(data, "__contains__", None))
-        assert callable(default)
-        self.φDATA = data
-        self.φDEFAULT = default
-
-    def __getattr__(self, key) -> valuetype:
-        if key not in self.φDATA:
-            self.φDATA[key] = self.φDEFAULT(key)
-        return self.φDATA[key]
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        pass
-
-
-class root_ctx(ctx):
-
-    def __init__(self, locals: T.Tuple[dict, int] = None):
-
-        if locals is None:
-            locals = 4
-
-        if isinstance(locals, int):
-            from sys import _getframe
-            locals = _getframe(locals).f_locals
-
-        def default_fn(name):
-            return valuetype(...)
-
-        super().__init__(locals, default_fn)
-
-    @property
-    def NEW(self):
-        return new_ctx(self.φDATA)
-
-    @property
-    def NOT(self):
-        return not_ctx(self.φDATA)
-
-
-class not_ctx(ctx):
-
-    def __init__(self, data):
-        def default_fn(name):
-            return valuetype(...)
-
-        super().__init__(data, default_fn)
-
-    def __getattr__(self, key) -> valuetype:
-        if key not in self.φDATA:
-            self.φDATA[key] = self.φDEFAULT(key)
-        return ~self.φDATA[key]
-
-
-class new_ctx(ctx):
-
-    def __init__(self, data):
-        def default_fn(name):
-            return valuetype(...)
-
-        super().__init__(data, default_fn)
-
-    def __getattr__(self, key) -> valuetype:
-        self.φDATA[key] = self.φDEFAULT(key)
-        return self.φDATA[key]
-
-
-class ctx:
-
-    def __init__(self, _data: T.MutableMapping = None, _override: bool = False, _pos: bool = True, _isroot=True):
-        self._data: T.MutableMapping = _data or {}
-        self._override: bool = _override
-        self._pos: bool = _pos
-        self._isroot: bool = _isroot
-
-    @property
-    def ANY(self):
-        return anytype.INSTANCE
-
-    @property
-    def NEW(self):
-        assert self._isroot, "This functionality can only be access by root 'ctx'"
-        return ctx(_data=self._data, _override=True, _pos=self._pos, _isroot=False)
-
-    @property
-    def NOT(self):
-        return ctx(_data=self._data, _override=self._override, _pos=not self._pos, _isroot=False)
-
-    def __getattr__(self, key) -> valuetype:
-        if key not in self._data or self._override:
-            self._data[key] = valuetype(value=None, empty=True, pos=True)
-        output = self._data[key]
-        if isinstance(output, invertabletype):
-            return output if output.pos == self._pos else ~output
-        return output
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        pass
-
-
-class _remote_locals:
-
-    def __init__(self, _stackidx):
-        self._stackidx = _stackidx
-
-    def __getitem__(self, key):
-        from sys import _getframe
-        frame = _getframe(self._stackidx)
-        return frame.f_locals[key]
-
-    def __setitem__(self, key, val):
-        from sys import _getframe
-        frame = _getframe(self._stackidx)
-        frame.f_locals[key] = val
-
-    def __contains__(self, key):
-        from sys import _getframe
-        frame = _getframe(self._stackidx)
-        return key in frame.f_locals
-
-
-# Make the 'module' emulate the 'ctx' class
-
-ANY = anytype.INSTANCE
-NEW = ctx(_remote_locals(2), _override=True, _pos=True, _isroot=False)
-NOT = ctx(_remote_locals(2), _override=False, _pos=False, _isroot=False)
-
-
-def __init_module():
-    import sys
-
-    current_module = sys.modules[__name__]
-    OldModuleClass = current_module.__class__
-
-    class NewModuleClass(OldModuleClass):
-        def __getattr__(self, key) -> memtype:
-            caller_locals = _remote_locals(3)
-            if key not in caller_locals:
-                caller_locals[key] = memtype(value=None, empty=True, pos=True)
-            output = caller_locals[key]
-            if isinstance(output, invertabletype):
-                return output if output.pos else ~output
-            return output
-    current_module.__class__ = NewModuleClass
-
-
-__init_module()
-del __init_module
