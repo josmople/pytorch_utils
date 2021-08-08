@@ -23,7 +23,7 @@ class root_ctx(ctx):
     def __getattr__(self, key):
         if key not in self.φDATA:
             from .classes import valuetype
-            self.φDATA[key] = valuetype(...)
+            self.φDATA[key] = valuetype()
         return self.φDATA[key]
 
 
@@ -35,7 +35,7 @@ class not_ctx(ctx):
     def __getattr__(self, key):
         if key not in self.φDATA:
             from .classes import valuetype
-            self.φDATA[key] = ~valuetype(...)
+            self.φDATA[key] = ~valuetype()
         return self.φDATA[key]
 
 
@@ -50,7 +50,7 @@ class new_ctx(ctx):
 
     def __getattr__(self, key):
         from .classes import valuetype
-        self.φDATA[key] = valuetype(...)
+        self.φDATA[key] = valuetype()
         return self.φDATA[key]
 
 
@@ -61,5 +61,5 @@ class new_not_ctx(ctx):
 
     def __getattr__(self, key):
         from .classes import valuetype
-        self.φDATA[key] = ~valuetype(...)
+        self.φDATA[key] = ~valuetype()
         return self.φDATA[key]

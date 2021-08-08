@@ -79,9 +79,7 @@ anytype.INSTANCE = object.__new__(anytype)
 
 class valuetype(iztype, operators):
     init = False
-
-    def __init__(self, value=None):
-        self.value = value
+    value = ...
 
     def __eq__(self, other):
         if isinstance(other, valuetype):
