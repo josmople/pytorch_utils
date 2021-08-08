@@ -40,9 +40,13 @@ class utils:
             if isinstance(val, ParseArgsDescriptor):
                 if val.name is None:
                     val.name = key
-                if len(val.args) != 0 and len(val.kwds) != 0:  # Empty Params will just be an accessor
+                args = val.args
+                kwds = val.kwds
+
+                if "is_key_args" in val.meta and val.meta["is_key_args"]:
                     args = (f"--{key}", *args)
-                    kwds = val.kwds
+
+                if len(args) != 0 and len(kwds) != 0:  # Empty Params will just be an accessor
                     parser.add_argument(*args, **kwds)
         return parser
 
@@ -116,10 +120,11 @@ class ParseArgsDescriptor:
     def attribute(self, namespace):
         return getattr(namespace, self.name)
 
-    def __init__(self, name: str = None, args: list = None, kwds: dict = None):
+    def __init__(self, name: str = None, args: list = None, kwds: dict = None, meta: dict = None):
         self.name = name
         self.args = args or []
         self.kwds = kwds or {}
+        self.meta = meta or {}
 
     def __get__(self, obj: object, objtype: type = None):
         namespace = self.namespace(obj, objtype)
@@ -208,32 +213,36 @@ def arg(
     dest: str = ...,
     version: str = ...,
     namespace_attr_name=None,
+    attr_name_as_argparse_name=True,
     **kwargs: _T.Any
 ):
-    arg_kwds = {}
+    all_kwds = {}
     if action != ...:
-        arg_kwds["action"] = action
+        all_kwds["action"] = action
     if nargs != ...:
-        arg_kwds["nargs"] = nargs
+        all_kwds["nargs"] = nargs
     if const != ...:
-        arg_kwds["const"] = const
+        all_kwds["const"] = const
     if default != ...:
-        arg_kwds["default"] = default
+        all_kwds["default"] = default
     if type != ...:
-        arg_kwds["type"] = type
+        all_kwds["type"] = type
     if choices != ...:
-        arg_kwds["choices"] = choices
+        all_kwds["choices"] = choices
     if required != ...:
-        arg_kwds["required"] = required
+        all_kwds["required"] = required
     if help != ...:
-        arg_kwds["help"] = help
+        all_kwds["help"] = help
     if metavar != ...:
-        arg_kwds["metavar"] = metavar
+        all_kwds["metavar"] = metavar
     if dest != ...:
-        arg_kwds["dest"] = dest
+        all_kwds["dest"] = dest
     if version != ...:
-        arg_kwds["version"] = version
+        all_kwds["version"] = version
 
-    arg_kwds = {**arg_kwds, **kwargs}
+    all_kwds = {**all_kwds, **kwargs}
+    meta = {
+        "is_key_args": attr_name_as_argparse_name
+    }
 
-    return ParseArgsDescriptor(name=namespace_attr_name, args=name_or_flags, kwds=arg_kwds)
+    return ParseArgsDescriptor(name=namespace_attr_name, args=name_or_flags, kwds=all_kwds, meta=meta)
