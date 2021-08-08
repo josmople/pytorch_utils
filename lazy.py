@@ -1,4 +1,5 @@
 from types import ModuleType as _ModuleType
+from typing import Callable as _Callable
 
 
 class LazyLoader(_ModuleType):
@@ -56,15 +57,14 @@ def lazyload(name, module_globals=None):
     return LazyLoader(name, module_globals)
 
 
-def lazyload_submodules(root_module_globals=None, root_module_name=None, include_submodules=None, exclude_submodules=None) -> True:
+def lazyload_submodules(root_module_globals: dict = None, root_module_name: str = None, submodule_filter: _Callable[[str], bool] = None) -> True:
     """
     Searches all possible submodules (relative to the root module) and makes them lazily-loaded.
 
     Args:
         root_module_globals: defaults to ``sys._getframe(1).f_globals`` (i.e. ``globals()`` of the caller).
         root_module_name: defaults to ``__package__``.
-        include_submodules: if not ``None``, will reject not in the list.
-        exclude_submodules: if not ``None``, will reject in the list.
+        submodule_filter: if not ``None``, will perform ``filter(submodule_filter, submodule_list)``.
         stack_idx: frame references stack (1 -> the scope of the package/code that called this function).
 
     Returns:
@@ -96,10 +96,8 @@ def lazyload_submodules(root_module_globals=None, root_module_name=None, include
     submodules = list(file_submodules) + list(dir_submodules)
 
     # Perform filter
-    if include_submodules is not None:
-        submodules = filter(lambda n: n in include_submodules, submodules)
-    if exclude_submodules is not None:
-        submodules = filter(lambda n: n not in exclude_submodules, submodules)
+    if submodule_filter is not None:
+        submodules = filter(submodule_filter, submodules)
 
     # Assign to parent namespace
     for submodule_name in submodules:
