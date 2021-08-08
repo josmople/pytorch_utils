@@ -38,6 +38,10 @@ class not_ctx(ctx):
             self.φDATA[key] = ~valuetype()
         return self.φDATA[key]
 
+    def __call__(self, value):
+        from .classes import inverttype
+        return inverttype(value)
+
 
 class new_ctx(ctx):
 
