@@ -20,6 +20,14 @@ class root_ctx(ctx):
     def NEW(self):
         return not_ctx(self.φDATA)
 
+    def AND(*args):
+        from .classes import andtype
+        return andtype(*args)
+
+    def OR(*args):
+        from .classes import ortype
+        return ortype(*args)
+
     def __getattr__(self, key):
         if key not in self.φDATA:
             from .classes import valuetype
