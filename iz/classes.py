@@ -1,11 +1,23 @@
 from __future__ import annotations
+import typing as _T
 
 
 class iztype:  # Class flag
     def __eq__(self, other): raise NotImplementedError()
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+_O = _T.TypeVar("_O")
+
 
 class operators:
+
+    # Delayed Initialization
+    def __call__(self: _O, *args, **kwds) -> _O:
+        self.__init__(*args, **kwds)
+        return self
 
     def __invert__(self) -> inverttype:
         return inverttype(self)
@@ -69,6 +81,7 @@ class anytype(iztype, operators):
     INSTANCE: anytype
     def __new__(cls): return anytype.INSTANCE
     def __eq__(self, other): return True
+    def __call__(self): return self
     def __getattr__(self, key): return self
     def __str__(self): return "ANY"
     def __repr__(self): return "anytype.INSTANCE"
@@ -78,8 +91,15 @@ anytype.INSTANCE = object.__new__(anytype)
 
 
 class valuetype(iztype, operators):
+    UNINITIALIZED = object()  # Unique
+
     init = False
-    value = ...
+    value = UNINITIALIZED
+
+    def __init__(self, value=UNINITIALIZED):
+        if value != valuetype.UNINITIALIZED:
+            self.value = value
+            self.init = True
 
     def __eq__(self, other):
         if isinstance(other, valuetype):
@@ -95,28 +115,26 @@ class valuetype(iztype, operators):
         if self.init:
             return self.value == other
 
-        self.value = other
-        self.init = True
+        self.__init__(other)
         return True
-
-    def __call__(self, value):
-        if self.init:
-            raise Exception(f"This {valuetype} is already initialized with value {self.value!r}")
-        self.value = value
-        self.init = True
-        return self
 
     def __str__(self): return repr(self.value)
     def __repr__(self): return f"valuetype(value={self.value!r}, init={self.init})"
 
 
 class inverttype(iztype, operators):
+    UNINITIALIZED = object()  # Unique
+
+    def __init__(self, value=UNINITIALIZED):
+        self.value = value
 
     def __init__(self, value):
         self.value = value
 
     def __eq__(self, other):
-        return self.value != other
+        if self.init:
+            return self.value != other
+        raise Exception(f"This {inverttype} is not already initialized")
 
     def __str__(self): return f"not {self.value!r}"
     def __repr__(self): return f"inverttype(value={self.value!r})"
