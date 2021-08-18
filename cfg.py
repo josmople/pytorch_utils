@@ -154,8 +154,8 @@ def arg(
     metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
     dest: str = ...,
     version: str = ...,
-    namespace_attr_name=None,
-    attr_name_as_argparse_name=True,
+    namespace_attrname=None,
+    attrname_as_parsename=True,
     **kwargs: _T.Any
 ) -> _T.List[DEFAULT]: ...
 
@@ -174,8 +174,8 @@ def arg(
     metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
     dest: str = ...,
     version: str = ...,
-    namespace_attr_name=None,
-    attr_name_as_argparse_name=True,
+    namespace_attrname=None,
+    attrname_as_parsename=True,
     **kwargs: _T.Any
 ) -> DEFAULT: ...
 
@@ -193,8 +193,8 @@ def arg(
     metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
     dest: str = ...,
     version: str = ...,
-    namespace_attr_name=None,
-    attr_name_as_argparse_name=True,
+    namespace_attrname=None,
+    attrname_as_parsename=True,
     **kwargs: _T.Any
 ) -> DEFAULT: ...
 
@@ -212,8 +212,8 @@ def arg(
     metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
     dest: str = ...,
     version: str = ...,
-    namespace_attr_name=None,
-    attr_name_as_argparse_name=True,
+    namespace_attrname=None,
+    attrname_as_parsename=True,
     **kwargs: _T.Any
 ):
     all_kwds = {}
@@ -242,7 +242,7 @@ def arg(
 
     all_kwds = {**all_kwds, **kwargs}
     meta = {
-        "is_key_args": attr_name_as_argparse_name
+        "is_key_args": attrname_as_parsename
     }
 
-    return ParseArgsDescriptor(name=namespace_attr_name, args=name_or_flags, kwds=all_kwds, meta=meta)
+    return ParseArgsDescriptor(name=namespace_attrname, args=name_or_flags, kwds=all_kwds, meta=meta)
