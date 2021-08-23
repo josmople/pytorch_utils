@@ -39,7 +39,6 @@ def hook_singlepass(model: _Module, targets: _T.List[_T.Union[str, _Module]], ea
             if early_exit:
                 def hook(module, input, output):
                     if state["in-context"]:
-                        assert submodule == module
                         outputs[submodule] = output
                         if all([module in outputs for module in module_targets]):  # If all target outputs are accounted
                             raise EarlyExit()  # Exit immediately
