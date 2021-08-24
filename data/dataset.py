@@ -70,12 +70,12 @@ class ZipDataset(Dataset):
         return min(self.sizes)
 
     def __getitem__(self, idx):
-        array = []
+        vals = []
         for ds in self.datasets:
-            array.append(ds[idx])
+            vals.append(ds[idx])
         if self.zip_transform is None:
-            return tuple(array)
-        return self.zip_transform(tuple(array))
+            return tuple(vals)
+        return self.zip_transform(*vals)
 
 
 class ZipIterableDataset(IterableDataset):
@@ -96,10 +96,12 @@ class ZipIterableDataset(IterableDataset):
     @staticmethod
     def generator(datasets, zip_transform):
         if zip_transform is None:
-            zip_transform = (lambda x: x)
+            for vals in zip(*datasets):
+                yield vals
+            return
 
         for vals in zip(*datasets):
-            yield zip_transform(vals)
+            yield zip_transform(*vals)
 
     def __iter__(self):
         return self.generator(self.datasets, self.zip_transform)
