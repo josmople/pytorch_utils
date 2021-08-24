@@ -199,6 +199,57 @@ def arg(
 ) -> DEFAULT: ...
 
 
+@_T.overload
+def arg(
+    *name_or_flags: str,
+    action="store_true",
+    default=False,
+    type=bool,
+    required: bool = ...,
+    help: str = ...,
+    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
+    dest: str = ...,
+    version: str = ...,
+    namespace_attrname=None,
+    attrname_as_parsename=True,
+    **kwargs: _T.Any
+) -> bool: ...
+
+
+@_T.overload
+def arg(
+    *name_or_flags: str,
+    action="store_false",
+    default=True,
+    type=bool,
+    required: bool = ...,
+    help: str = ...,
+    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
+    dest: str = ...,
+    version: str = ...,
+    namespace_attrname=None,
+    attrname_as_parsename=True,
+    **kwargs: _T.Any
+) -> bool: ...
+
+
+@_T.overload
+def arg(
+    *name_or_flags: str,
+    action="store_const",
+    const: DEFAULT = ...,
+    type: _T.Type[DEFAULT] = ...,
+    required: bool = ...,
+    help: str = ...,
+    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
+    dest: str = ...,
+    version: str = ...,
+    namespace_attrname=None,
+    attrname_as_parsename=True,
+    **kwargs: _T.Any
+) -> DEFAULT: ...
+
+
 def arg(
     *name_or_flags: str,
     action: _T.Union[str, _T.Type[argparse.Action]] = ...,
