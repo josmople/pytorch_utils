@@ -143,6 +143,57 @@ DEFAULT = _T.TypeVar("DEFAULT")
 @_T.overload
 def arg(
     *name_or_flags: str,
+    action: _T.Literal["store_true"],
+    default=False,
+    type=bool,
+    required: bool = ...,
+    help: str = ...,
+    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
+    dest: str = ...,
+    version: str = ...,
+    namespace_attrname=None,
+    attrname_as_parsename=True,
+    **kwargs: _T.Any
+) -> bool: ...
+
+
+@_T.overload
+def arg(
+    *name_or_flags: str,
+    action: _T.Literal["store_false"],
+    default=True,
+    type=bool,
+    required: bool = ...,
+    help: str = ...,
+    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
+    dest: str = ...,
+    version: str = ...,
+    namespace_attrname=None,
+    attrname_as_parsename=True,
+    **kwargs: _T.Any
+) -> bool: ...
+
+
+@_T.overload
+def arg(
+    *name_or_flags: str,
+    action: _T.Literal["store_const"],
+    const: DEFAULT = ...,
+    type: _T.Type[DEFAULT] = ...,
+    required: bool = ...,
+    help: str = ...,
+    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
+    dest: str = ...,
+    version: str = ...,
+    namespace_attrname=None,
+    attrname_as_parsename=True,
+    **kwargs: _T.Any
+) -> DEFAULT: ...
+
+
+@_T.overload
+def arg(
+    *name_or_flags: str,
     action: _T.Union[str, _T.Type[argparse.Action]] = ...,
     nargs: _T.Union[int, _T.Literal["*", "+"]],
     const: _T.Any = ...,
@@ -188,57 +239,6 @@ def arg(
     default: DEFAULT = ...,
     type: _T.Union[_T.Type[DEFAULT], argparse.FileType] = ...,
     choices: _T.Iterable[DEFAULT] = ...,
-    required: bool = ...,
-    help: str = ...,
-    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
-    dest: str = ...,
-    version: str = ...,
-    namespace_attrname=None,
-    attrname_as_parsename=True,
-    **kwargs: _T.Any
-) -> DEFAULT: ...
-
-
-@_T.overload
-def arg(
-    *name_or_flags: str,
-    action: _T.Literal["store_true"] = ...,
-    default=False,
-    type=bool,
-    required: bool = ...,
-    help: str = ...,
-    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
-    dest: str = ...,
-    version: str = ...,
-    namespace_attrname=None,
-    attrname_as_parsename=True,
-    **kwargs: _T.Any
-) -> bool: ...
-
-
-@_T.overload
-def arg(
-    *name_or_flags: str,
-    action: _T.Literal["store_false"] = ...,
-    default=True,
-    type=bool,
-    required: bool = ...,
-    help: str = ...,
-    metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
-    dest: str = ...,
-    version: str = ...,
-    namespace_attrname=None,
-    attrname_as_parsename=True,
-    **kwargs: _T.Any
-) -> bool: ...
-
-
-@_T.overload
-def arg(
-    *name_or_flags: str,
-    action: _T.Literal["store_const"] = ...,
-    const: DEFAULT = ...,
-    type: _T.Type[DEFAULT] = ...,
     required: bool = ...,
     help: str = ...,
     metavar: _T.Union[str, _T.Tuple[str, ...]] = ...,
