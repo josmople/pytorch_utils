@@ -76,16 +76,16 @@ class operators:
     def __rfloordiv__(self, other) -> lambdatype:
         return lambdatype(lambda x, y: x // y, other, self)
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return lambdatype(lambda x, y: x < y, other, self) == True
 
-    def __le__(self, other):
+    def __le__(self, other) -> bool:
         return lambdatype(lambda x, y: x <= y, other, self) == True
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         return lambdatype(lambda x, y: x > y, other, self) == True
 
-    def __ge__(self, other):
+    def __ge__(self, other) -> bool:
         return lambdatype(lambda x, y: x >= y, other, self) == True
 
 
