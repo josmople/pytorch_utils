@@ -76,6 +76,18 @@ class operators:
     def __rfloordiv__(self, other) -> lambdatype:
         return lambdatype(lambda x, y: x // y, other, self)
 
+    def __lt__(self, other):
+        return lambdatype(lambda x, y: x < y, other, self) == True
+
+    def __le__(self, other):
+        return lambdatype(lambda x, y: x <= y, other, self) == True
+
+    def __gt__(self, other):
+        return lambdatype(lambda x, y: x > y, other, self) == True
+
+    def __ge__(self, other):
+        return lambdatype(lambda x, y: x >= y, other, self) == True
+
 
 class anytype(iztype, operators):
     INSTANCE: anytype
@@ -175,7 +187,7 @@ class lambdatype(iztype, operators):
         if isinstance(arg, valuetype):
             if arg.init:
                 return arg.value
-            raise Exception(f"Cannot perform operations on uninitialized {valuetype}")
+            raise valuetype(f"Cannot perform operation {self.ops} on uninitialized {valuetype}")
         return arg
 
     def __eq__(self, other):

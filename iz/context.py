@@ -18,7 +18,7 @@ class root_ctx(ctx):
 
     @property
     def NEW(self):
-        return not_ctx(self.φDATA)
+        return new_ctx(self.φDATA)
 
     def AND(*args):
         from .classes import andtype
@@ -56,9 +56,9 @@ class new_ctx(ctx):
     def __init__(self, data):
         super().__init__(data)
 
-    @property
-    def NOT(self):
-        return new_not_ctx(self.φDATA)
+    # @property
+    # def NOT(self):
+    #     return new_not_ctx(self.φDATA)
 
     def __getattr__(self, key):
         from .classes import valuetype
@@ -66,12 +66,12 @@ class new_ctx(ctx):
         return self.φDATA[key]
 
 
-class new_not_ctx(ctx):
+# class new_not_ctx(ctx):
 
-    def __init__(self, data):
-        super().__init__(data)
+#     def __init__(self, data):
+#         super().__init__(data)
 
-    def __getattr__(self, key):
-        from .classes import valuetype
-        self.φDATA[key] = ~valuetype()
-        return self.φDATA[key]
+#     def __getattr__(self, key):
+#         from .classes import valuetype
+#         self.φDATA[key] = ~valuetype()
+#         return self.φDATA[key]
