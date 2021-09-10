@@ -77,16 +77,16 @@ class operators:
         return lambdatype(lambda x, y: x // y, other, self)
 
     def __lt__(self, other) -> bool:
-        return lambdatype(lambda x, y: x < y, other, self) == True
+        return lambdatype(lambda x, y: x < y, self, other) == True
 
     def __le__(self, other) -> bool:
-        return lambdatype(lambda x, y: x <= y, other, self) == True
+        return lambdatype(lambda x, y: x <= y, self, other) == True
 
     def __gt__(self, other) -> bool:
-        return lambdatype(lambda x, y: x > y, other, self) == True
+        return lambdatype(lambda x, y: x > y, self, other) == True
 
     def __ge__(self, other) -> bool:
-        return lambdatype(lambda x, y: x >= y, other, self) == True
+        return lambdatype(lambda x, y: x >= y, self, other) == True
 
 
 class anytype(iztype, operators):
