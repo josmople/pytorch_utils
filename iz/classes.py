@@ -137,16 +137,18 @@ class valuetype(iztype, operators):
 class inverttype(iztype, operators):
     UNINITIALIZED = object()  # Unique
 
-    def __init__(self, value=UNINITIALIZED):
-        self.value = value
+    init = False
+    value = UNINITIALIZED
 
-    def __init__(self, value):
-        self.value = value
+    def __init__(self, value=UNINITIALIZED):
+        if value != valuetype.UNINITIALIZED:
+            self.value = value
+            self.init = True
 
     def __eq__(self, other):
         if self.init:
             return self.value != other
-        raise Exception(f"This {inverttype} is not already initialized")
+        raise Exception(f"This {inverttype} is not initialized")
 
     def __str__(self): return f"not {self.value!r}"
     def __repr__(self): return f"inverttype(value={self.value!r})"
@@ -156,8 +158,9 @@ class andtype(iztype, operators):
     def __init__(self, *args):
         self.args = args
 
-    def __eq__(self, other):  # Perform all __eq__ evaluations to init valuetypes
-        return all(arg == other for arg in self.args)
+    def __eq__(self, other):
+        vals = list(arg == other for arg in self.args)  # Perform all __eq__ evaluations to init valuetypes
+        return all(vals)
 
     def __str__(self): return " & ".join(map(repr, self.args))
     def __repr__(self): return f"andtype({', '.join(map(repr, self.args))})"
@@ -168,8 +171,9 @@ class ortype(iztype, operators):
     def __init__(self, *args):
         self.args = args
 
-    def __eq__(self, other):  # Perform all __eq__ evaluations to init valuetypes
-        return any(arg == other for arg in self.args)
+    def __eq__(self, other):
+        vals = list(arg == other for arg in self.args)  # Perform all __eq__ evaluations to init valuetypes
+        return any(vals)
 
     def __str__(self): return " | ".join(map(repr, self.args))
     def __repr__(self): return f"ortype({', '.join(map(repr, self.args))})"
