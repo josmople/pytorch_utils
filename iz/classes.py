@@ -130,7 +130,7 @@ class valuetype(iztype, operators):
         self.__init__(other)
         return True
 
-    def __str__(self): return repr(self.value)
+    def __str__(self): return f"{self.value!r}"
     def __repr__(self): return f"valuetype(value={self.value!r}, init={self.init})"
 
 
@@ -151,7 +151,7 @@ class inverttype(iztype, operators):
         raise Exception(f"This {inverttype} is not initialized")
 
     def __str__(self): return f"not {self.value!r}"
-    def __repr__(self): return f"inverttype(value={self.value!r})"
+    def __repr__(self): return f"valuetype(value={self.value!r}, init={self.init})"
 
 
 class andtype(iztype, operators):
