@@ -30,4 +30,5 @@ nearest = Resize("nearest")
 
 
 def algo(mode: _T.Literal["bilinear", "bicubic", "nearest"] = "bilinear"):
-    return Resize(mode)
+    import sys
+    return getattr(sys.modules[__name__], mode)
