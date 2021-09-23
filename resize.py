@@ -24,7 +24,7 @@ class Resize:
         return interpolate(tensor, size=(size or self.size), scale_factor=(scale or self.scale), mode=(mode or self.mode), **local_kwds)
 
 
-bilinear = Resize("bilinear")
+bilinear = Resize("bilinear", align_corners=True)
 bicubic = Resize("bicubic")
 nearest = Resize("nearest")
 
