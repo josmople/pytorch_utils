@@ -93,7 +93,7 @@ class SinglepassExtractor(_Module):
         self._cache = cache
 
     def unhook_model(self):
-        assert self._model is not None, f"The model ({self.model.__class__.__name__}) is not hooked yet"
+        assert self._model is not None, f"The model ({self._model.__class__.__name__}) is not hooked yet"
 
         self._unhook()
 
