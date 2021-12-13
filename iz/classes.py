@@ -196,7 +196,7 @@ class lambdatype(iztype, operators):
         if isinstance(arg, valuetype):
             if arg.init:
                 return arg.value
-            raise valuetype(f"Cannot perform operation {self.ops} on uninitialized {valuetype}")
+            raise Exception(f"Cannot perform operation {self.ops} on uninitialized {valuetype}")
         return arg
 
     def __eq__(self, other):
