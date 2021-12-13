@@ -118,7 +118,7 @@ class valuetype(iztype, operators):
             if self.init == True and other.init == True:
                 return self.value == other.value
             if self.init == False and other.init == False:
-                raise Exception(f"When computing equality between two {valuetype}, at least one should be initialized.")
+                raise Exception(f"When computing equality '=' between two {valuetype}, at least one should be initialized.")
             if self.init == False and other.init == True:
                 return self == other.value
             if self.init == True and other.init == False:
@@ -129,6 +129,11 @@ class valuetype(iztype, operators):
 
         self.__init__(other)
         return True
+
+    def __ne__(self, other):
+        if self.init:
+            return not self.__eq__(other)
+        raise Exception(f"When computing inequality '!=', {valuetype} must be initialized.")
 
     def __str__(self): return f"{self.value!r}"
     def __repr__(self): return f"valuetype(value={self.value!r}, init={self.init})"
