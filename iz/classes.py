@@ -136,7 +136,7 @@ class valuetype(iztype, operators):
         raise Exception(f"When computing inequality '!=', {valuetype} must be initialized.")
 
     def __str__(self): return f"{self.value!r}"
-    def __repr__(self): return f"valuetype(value={self.value!r}, init={self.init})"
+    def __repr__(self): return f"{valuetype.__class__.__qualname__}(value={self.value!r}, init={self.init})"
 
 
 class inverttype(iztype, operators):
@@ -156,7 +156,7 @@ class inverttype(iztype, operators):
         raise Exception(f"This {inverttype} is not initialized")
 
     def __str__(self): return f"not {self.value!r}"
-    def __repr__(self): return f"valuetype(value={self.value!r}, init={self.init})"
+    def __repr__(self): return f"{inverttype.__class__.__qualname__}(value={self.value!r}, init={self.init})"
 
 
 class andtype(iztype, operators):
@@ -168,7 +168,7 @@ class andtype(iztype, operators):
         return all(vals)
 
     def __str__(self): return " & ".join(map(repr, self.args))
-    def __repr__(self): return f"andtype({', '.join(map(repr, self.args))})"
+    def __repr__(self): return f"{andtype.__class__.__qualname__}({', '.join(map(repr, self.args))})"
 
 
 class ortype(iztype, operators):
@@ -181,7 +181,7 @@ class ortype(iztype, operators):
         return any(vals)
 
     def __str__(self): return " | ".join(map(repr, self.args))
-    def __repr__(self): return f"ortype({', '.join(map(repr, self.args))})"
+    def __repr__(self): return f"{ortype.__class__.__qualname__}({', '.join(map(repr, self.args))})"
 
 
 class lambdatype(iztype, operators):
@@ -203,4 +203,4 @@ class lambdatype(iztype, operators):
         return self.ops(*map(self.extract_value, self.args)) == other
 
     def __str__(self): return f"{self.ops.__name__}({', '.join(map(repr, self.args))})"
-    def __repr__(self): return f"lambdatype(ops={self.ops!r}, args={list(self.args)!r})"
+    def __repr__(self): return f"{lambdatype.__class__.__qualname__}(ops={self.ops!r}, args={list(self.args)!r})"
