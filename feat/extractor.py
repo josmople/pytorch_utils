@@ -36,17 +36,20 @@ def hook_singlepass(model: _Module, targets: _T.List[_T.Union[str, _Module]], ea
     for name, submodule in model.named_modules():
         if submodule in module_targets:
 
-            if early_exit:
-                def hook(module, input, output):
-                    if state["in-context"]:
-                        outputs[submodule] = output
-                        if all([module in outputs for module in module_targets]):  # If all target outputs are accounted
-                            raise EarlyExit()  # Exit immediately
-            else:
-                def hook(module, input, output):
-                    if state["in-context"]:
-                        assert submodule == module
-                        outputs[submodule] = output
+            def outer(s):
+                if early_exit:
+                    def inner(module, input, output):
+                        if state["in-context"]:
+                            outputs[s] = output
+                            if all([module in outputs for module in module_targets]):  # If all target outputs are accounted
+                                raise EarlyExit()  # Exit immediately
+                else:
+                    def inner(module, input, output):
+                        if state["in-context"]:
+                            outputs[s] = output
+                return inner
+
+            hook = outer(submodule)
 
             handle = submodule.register_forward_hook(hook)
             handles.append(handle)
