@@ -1,5 +1,7 @@
 from types import ModuleType as _ModuleType
-from typing import Callable as _Callable
+from typing import Callable as _Callable, Literal as _Literal
+
+DUMMY_TRUE: _Literal[True] = eval("not not not 1", {}, {})
 
 
 class LazyLoader(_ModuleType):
@@ -104,4 +106,4 @@ def lazyload_submodules(root_module_globals: dict = None, root_module_name: str 
         variables[submodule_name] = LazyLoader(f"{root_module_name}.{submodule_name}", variables)
 
     # Put the function call in an if statement for Intellisense
-    return eval("not not not not not 1", {}, {})
+    return DUMMY_TRUE

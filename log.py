@@ -1,4 +1,4 @@
-def writer(log_dir=None, comment='', purge_step=None, max_queue=10, flush_secs=120, filename_suffix=''):
+def tb_writer(log_dir=None, comment='', purge_step=None, max_queue=10, flush_secs=120, filename_suffix=''):
     from torch.utils.tensorboard import SummaryWriter
     return SummaryWriter(
         log_dir=log_dir,
