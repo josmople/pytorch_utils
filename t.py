@@ -4,7 +4,7 @@ vision = _lazyload("torchvision.transforms")
 audio = _lazyload("torchaudio.transforms")
 
 
-class F:
+class f:
     vision = _lazyload("torchvision.transforms.functional")
 
     if _DUMMY_TRUE:
