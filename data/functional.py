@@ -7,6 +7,10 @@ def identity_transform(x):
     return x
 
 
+def identity_zip_transform(*x):
+    return x
+
+
 #####################################################
 # Basic Functions
 #####################################################
@@ -95,7 +99,7 @@ def dzip(*datasets, zip_transform=None, as_iter=False):
         from functools import partial
         return partial(dzip, zip_transform=zip_transform)
 
-    zip_transform = zip_transform or identity_transform
+    zip_transform = zip_transform or identity_zip_transform
     if isinstance(zip_transform, (list, tuple)):
         from torchvision.transforms import Compose
         zip_transform = Compose(zip_transform)
