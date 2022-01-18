@@ -3,7 +3,7 @@ from os.path import *
 from os import makedirs
 
 
-def glob(pathname, *, recursive=False, unique=True, sort=True, sort_key=None, sort_reverse=False):
+def glob(pathname, *, recursive=False, unique=True, sort=True, sort_key=None, sort_reverse=False) -> list:
     from glob import glob as _glob
 
     if isinstance(pathname, str):  # If simple string
@@ -21,3 +21,7 @@ def glob(pathname, *, recursive=False, unique=True, sort=True, sort_key=None, so
     if sort:
         return sorted(values, key=sort_key, reverse=sort_reverse)
     return values
+
+
+def filename(p: str) -> str:
+    return splitext(basename(p))[0]
