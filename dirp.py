@@ -85,7 +85,7 @@ def tag(name, directory: str = None, params: dict = None, desc: str = None, dele
 
     if params is None:
         params_text = ""
-    else:
+    elif isinstance(params, dict):
         import re
         WHITESPACE_FINDER = re.compile(r"\s+")
 
@@ -94,6 +94,8 @@ def tag(name, directory: str = None, params: dict = None, desc: str = None, dele
             v = WHITESPACE_FINDER.sub(" ", str(v)).strip()  # Replace any whitespace with single space
             params_text += f"{k}={v}"
         params_text = f"({params_text})"
+    else:
+        params_text = f"({str(params)})"
 
     from os.path import join
     filename = join(directory, f"{name}{params_text}.{ext}")
