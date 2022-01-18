@@ -28,9 +28,8 @@ class ComposeZip:
     def __repr__(self):
         format_string = self.__class__.__name__ + '('
         for i, t in enumerate(self.transforms):
-            format_string += '\n'
-            format_string += '    Arg{0}={1}'.format(i, t)
-        format_string += '\n)'
+            format_string += 'Arg{0}={1}, '.format(i, t)
+        format_string += ')'
         return format_string
 
 
