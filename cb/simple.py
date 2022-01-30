@@ -1,62 +1,67 @@
 from __future__ import annotations
 import typing as _T
 
-from .interface import SubscriptableCallback as _SubscriptableCallback
+_FN = _T.TypeVar("_FN", _T.Callable)
 
 
-class SimpleCallback(_SubscriptableCallback[str]):
+class SubscriptableCallback:
 
     def __init__(self):
         self.callbacks: _T.Dict[str, _T.List[_T.Callable]] = {}
 
-    def __call__(self, _event, *args, **kwds):
-        self.invoke(_event, *args, **kwds)
+    def __call__(self, __event, *args, **kwds):
+        self.invoke(__event, *args, **kwds)
 
-    def invoke(self, _event, *args, **kwds):
-        if _event in self.callbacks:
-            callbacks = self.callbacks[_event]
+    def invoke(self, __event, *args, **kwds):
+        __event = str(__event)
+
+        if __event in self.callbacks:
+            callbacks = self.callbacks[__event]
             for callback in callbacks:
                 callback(*args, **kwds)
 
     @_T.overload
-    def subscribe(self, _event: str) -> _T.Callable: ...
+    def subscribe(self, __event: str) -> _T.Callable[[_FN], _FN]: ...
     @_T.overload
-    def subscribe(self, _event: str, *_callbacks: _T.Callable) -> SimpleCallback: ...
+    def subscribe(self, __event: str, *__callbacks: _T.Callable) -> SubscriptableCallback: ...
 
-    def subscribe(self, _event: str, *_callbacks: _T.Callable):
-        if len(_callbacks) == 0:
-            from functools import partial
-            return partial(self.subscribe, _event)
+    def subscribe(self, __event: str, *__callbacks: _T.Callable):
+        __event = str(__event)
 
-        if _event not in self.callbacks:
-            self.callbacks[_event] = []
-        for callback in _callbacks:
-            self.callbacks[_event].append(callback)
+        if len(__callbacks) == 0:
+            def decorator(callback):
+                self.subscribe(__event, callback)
+                return callback
+            return decorator
+
+        if __event not in self.callbacks:
+            self.callbacks[__event] = []
+        for callback in __callbacks:
+            self.callbacks[__event].append(callback)
 
         return self
 
-    def unsubscribe(self, _event: str, *_callbacks: _T.Callable) -> _T.List[_T.Callable]:
-        if _event not in self.callbacks:
+    def unsubscribe(self, __event: str, *__callbacks: _T.Callable) -> _T.List[_T.Callable]:
+        __event = str(__event)
+
+        if __event not in self.callbacks:
             return None
 
-        removed_callbacks = []
+        removed__callbacks = []
 
-        event_callbacks = self.callbacks[_event]
-        for callback in _callbacks:
+        event__callbacks = self.callbacks[__event]
+        for callback in __callbacks:
             try:
-                event_callbacks.remove(callback)
-                removed_callbacks.append(callback)
+                event__callbacks.remove(callback)
+                removed__callbacks.append(callback)
             except ValueError:
                 pass
 
-        return removed_callbacks
+        return removed__callbacks
 
     def subscriptions(self) -> _T.List[_T.Tuple[str, _T.Callable]]:
         def generator():
-            for event in self.callbacks:
-                for callback in self.callbacks[event]:
+            for event, callbacks in self.callbacks.items():
+                for callback in callbacks:
                     yield event, callback
         return list(generator())
-
-
-del _T, _SubscriptableCallback
