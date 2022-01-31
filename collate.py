@@ -22,7 +22,7 @@ def generate_collate_batch(concat_dict: T.Dict[T.Tuple[int, type], T.Callable[[T
         if isinstance(row, T.Mapping):
             return {key: collate_column([d[key] for d in batch], key, type(row[key])) for key in row}
 
-        if isinstance(row, tuple) and hasattr(row, '_fields'):  # namedtuple
+        if isinstance(row, tuple) and hasattr(row, "_fields"):  # namedtuple
             transposed = zip(*batch)
             return row_type(*(collate_column(samples, idx, key, type(samples[0])) for samples, idx, key in zip(transposed, range(len(row), row._fields))))
 
