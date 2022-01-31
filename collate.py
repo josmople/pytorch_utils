@@ -31,7 +31,7 @@ def generate_collate_batch(concat_dict: T.Dict[T.Tuple[int, type], T.Callable[[T
             it = iter(batch)
             elem_size = len(next(it))
             if not all(len(elem) == elem_size for elem in it):
-                raise RuntimeError('each element in list of batch should be of equal size')
+                raise RuntimeError("each element in list of batch should be of equal size")
             transposed = zip(*batch)
             return [collate_column(samples, idx, type(samples[0])) for idx, samples in enumerate(transposed)]
 
