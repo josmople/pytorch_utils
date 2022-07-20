@@ -23,7 +23,7 @@ def generate_collate_batch(concat_dict: T.Dict[T.Union[int, str, type], T.Callab
             transposed = zip(*batch)
             return row_type(*(collate_column(samples, idx, key, type(samples[0])) for samples, idx, key in zip(transposed, range(len(row), row._fields))))
 
-        if isinstance(row, T.Sequence):
+        if isinstance(row, T.Sequence):  # list and tuple
             it = iter(batch)  # check to make sure that the elements in batch have consistent size
             elem_size = len(next(it))
             if not all(len(elem) == elem_size for elem in it):
