@@ -1,13 +1,10 @@
 import typing as T
 
-
-def collate_items(col):
-    from torch.utils.data._utils import collate
-    return collate.default_collate(col)
+from torch.utils.data._utils.collate import default_collate
 
 
-def generate_collate_batch(concat_dict: T.Dict[T.Union[int, type], T.Callable[[T.List], T.Any]] = dict(), concat_default: T.Callable[[T.List], T.Any] = collate_items):
-    concat_dict = concat_dict.copy()
+def generate_collate_batch(concat_dict: T.Dict[T.Union[int, str, type], T.Callable[[T.List], T.Any]] = None, concat_default: T.Callable[[T.List], T.Any] = default_collate):
+    concat_dict = {} if concat_dict is None else concat_dict.copy()
 
     def collate_column(items: list, *keys) -> T.Any:
         for key in keys:
@@ -27,11 +24,11 @@ def generate_collate_batch(concat_dict: T.Dict[T.Union[int, type], T.Callable[[T
             return row_type(*(collate_column(samples, idx, key, type(samples[0])) for samples, idx, key in zip(transposed, range(len(row), row._fields))))
 
         if isinstance(row, T.Sequence):
-            # check to make sure that the elements in batch have consistent size
-            it = iter(batch)
+            it = iter(batch)  # check to make sure that the elements in batch have consistent size
             elem_size = len(next(it))
             if not all(len(elem) == elem_size for elem in it):
                 raise RuntimeError("each element in list of batch should be of equal size")
+
             transposed = zip(*batch)
             return [collate_column(samples, idx, type(samples[0])) for idx, samples in enumerate(transposed)]
 
