@@ -1,7 +1,5 @@
 from types import ModuleType as _ModuleType
-from typing import Callable as _Callable, Literal as _Literal
-
-DUMMY_TRUE: _Literal[True] = eval("not not not 1", {}, {})
+from typing import Callable as _Callable, Literal as _Literal, TYPE_CHECKING
 
 
 class LazyLoader(_ModuleType):
@@ -42,9 +40,6 @@ class LazyLoader(_ModuleType):
         self._module_cache = module
         return module
 
-    def __call__(self, *args, **kwds):
-        return self._module(*args, **kwds)
-
     def __getattr__(self, item):
         return getattr(self._module, item)
 
@@ -55,11 +50,16 @@ class LazyLoader(_ModuleType):
 def lazyload(name, module_globals=None):
     if module_globals is None:
         from sys import _getframe
+
         module_globals = _getframe(1).f_globals
     return LazyLoader(name, module_globals)
 
 
-def lazyload_submodules(root_module_globals: dict = None, root_module_name: str = None, submodule_filter: _Callable[[str], bool] = None) -> True:
+def lazyload_submodules(
+    root_module_globals: dict | None = None,
+    root_module_name: str | None = None,
+    submodule_filter: _Callable[[str], bool] | None = None,
+) -> _Literal[True]:
     """
     Searches all possible submodules (relative to the root module) and makes them lazily-loaded.
 
@@ -106,4 +106,4 @@ def lazyload_submodules(root_module_globals: dict = None, root_module_name: str 
         variables[submodule_name] = LazyLoader(f"{root_module_name}.{submodule_name}", variables)
 
     # Put the function call in an if statement for Intellisense
-    return DUMMY_TRUE
+    return TYPE_CHECKING  # type: ignore
